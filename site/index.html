@@ -1,0 +1,107 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="theme-color" content="#07111f" />
+  <title>QR Field Ops</title>
+  <link rel="icon" href="/assets/favicon.svg" type="image/svg+xml" />
+  <link rel="stylesheet" href="/styles.css" />
+</head>
+<body>
+  <div id="boot-screen" class="screen center-screen">
+    <div class="boot-card">
+      <div class="brand-mark">QR</div>
+      <h1>QR Field Ops</h1>
+      <p id="boot-message">Connecting securely…</p>
+      <div class="spinner" aria-hidden="true"></div>
+    </div>
+  </div>
+
+  <div id="login-screen" class="screen center-screen hidden">
+    <main class="auth-shell">
+      <section class="auth-hero">
+        <div class="brand-row">
+          <div class="brand-mark">QR</div>
+          <div>
+            <strong>QR Field Ops</strong>
+            <span>Business onboarding & review QR management</span>
+          </div>
+        </div>
+        <div class="hero-copy">
+          <span class="eyebrow">FIELD SALES • CRM • QR</span>
+          <h1>One system for your workers, businesses and Google Review QR cards.</h1>
+          <p>Generate permanent QR IDs, assign them to field workers, onboard businesses, track visits and commissions, and redirect customers to the correct review page.</p>
+        </div>
+        <div class="hero-points">
+          <div><b>✓</b> Central Supabase database</div>
+          <div><b>✓</b> Google sign-in for admin & workers</div>
+          <div><b>✓</b> Dynamic QR destination</div>
+          <div><b>✓</b> Location & scan records</div>
+        </div>
+      </section>
+
+      <section class="auth-card">
+        <div class="auth-card-head">
+          <h2>Sign in</h2>
+          <p>Use Google or your Supabase email/password account.</p>
+        </div>
+        <button id="google-login-btn" class="google-btn" type="button">
+          <span class="google-g" aria-hidden="true">G</span>
+          Continue with Google
+        </button>
+        <p class="helper center">Google sign-in works for admins and workers. New Google accounts start as workers.</p>
+        <div class="divider"><span>or</span></div>
+        <form id="email-login-form" class="stack">
+          <label><span>Email</span><input id="login-email" type="email" autocomplete="email" required placeholder="name@company.com" /></label>
+          <label><span>Password</span><input id="login-password" type="password" autocomplete="current-password" required placeholder="••••••••" /></label>
+          <button class="primary-btn" type="submit">Sign in</button>
+        </form>
+        <div id="login-error" class="alert error hidden"></div>
+      </section>
+    </main>
+  </div>
+
+  <div id="app-screen" class="app-shell hidden">
+    <aside class="sidebar" id="sidebar">
+      <div class="sidebar-brand">
+        <div class="brand-mark small-mark">QR</div>
+        <div><strong id="brand-company">QR Field Ops</strong><span id="brand-role">Workspace</span></div>
+      </div>
+      <nav id="nav" class="nav-list"></nav>
+      <div class="sidebar-bottom">
+        <div class="user-card">
+          <div class="avatar" id="user-avatar">U</div>
+          <div class="user-card-copy"><strong id="user-name">User</strong><span id="user-email">—</span></div>
+        </div>
+        <button id="logout-btn" class="ghost-btn full" type="button">Sign out</button>
+      </div>
+    </aside>
+
+    <div class="main-wrap">
+      <header class="topbar">
+        <button id="menu-btn" class="icon-btn mobile-only" aria-label="Open navigation">☰</button>
+        <div><h1 id="page-title">Dashboard</h1><p id="page-subtitle">Overview</p></div>
+        <div class="top-actions">
+          <span id="role-badge" class="pill">Worker</span>
+          <button id="refresh-btn" class="ghost-btn" type="button">Refresh</button>
+        </div>
+      </header>
+      <main id="page" class="page"></main>
+    </div>
+  </div>
+
+  <div id="toast" class="toast hidden" role="status" aria-live="polite"></div>
+
+  <dialog id="modal" class="modal">
+    <form method="dialog" class="modal-card" id="modal-card">
+      <button class="modal-close" value="cancel" aria-label="Close">×</button>
+      <div id="modal-content"></div>
+    </form>
+  </dialog>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.117.2"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+  <script src="/app.js" defer></script>
+</body>
+</html>
