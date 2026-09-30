@@ -7,3 +7,40 @@
 @media(max-width:1050px){.stats-grid{grid-template-columns:repeat(2,1fr)}.three-grid{grid-template-columns:1fr 1fr}.auth-shell{grid-template-columns:1fr}.auth-hero{display:none}.auth-card{min-height:600px}.app-shell{grid-template-columns:1fr}.sidebar{position:fixed;left:-285px;width:265px;transition:left .2s ease;box-shadow:var(--shadow)}.sidebar.open{left:0}.mobile-only{display:inline-grid;place-items:center}.topbar{padding:0 16px}.page{padding:18px}}
 @media(max-width:700px){.auth-card{padding:30px 22px}.stats-grid,.two-grid,.three-grid,.form-grid{grid-template-columns:1fr}.field.full-span{grid-column:auto}.top-actions .pill{display:none}.topbar h1{font-size:18px}.page{padding:14px}.card{padding:16px}.review-card{transform:scale(.88);transform-origin:top center;margin-bottom:-66px}.toolbar{align-items:stretch}.toolbar>*{width:100%}.spacer{display:none}.hero-copy h1{font-size:38px}.card-preview-head{display:block}.qr-bulk-tools{width:100%}.select-unused{flex:1}.premium-review-card h2{font-size:34px}}
 @media print{body>*{display:none!important}#print-area{display:block!important}.review-card{box-shadow:none;border:1px solid #ccc;page-break-inside:avoid;margin:0 auto}.review-card-preview{border:0;background:#fff;padding:0}}
+
+
+/* Signature QR V2 — integrated modern scan lens */
+.premium-review-card{background:
+  radial-gradient(circle at 14% 8%,rgba(59,130,246,.48),transparent 28%),
+  radial-gradient(circle at 92% 18%,rgba(236,72,153,.20),transparent 25%),
+  radial-gradient(circle at 76% 92%,rgba(16,185,129,.20),transparent 28%),
+  linear-gradient(160deg,#06101e 0%,#0b1830 55%,#122243 100%)}
+.review-grid-glow{position:absolute;inset:0;pointer-events:none;background:
+  linear-gradient(115deg,rgba(255,255,255,.07),transparent 30%,transparent 70%,rgba(255,255,255,.035)),
+  repeating-linear-gradient(90deg,transparent 0 38px,rgba(255,255,255,.018) 38px 39px);opacity:.75}
+.review-speed{display:inline-flex;align-items:center;gap:7px}
+.review-speed i{width:7px;height:7px;border-radius:50%;background:#34d399;box-shadow:0 0 0 5px rgba(52,211,153,.12)}
+.premium-review-card h2{font-size:35px;margin:11px 0 8px}
+.premium-review-card p{font-size:11.5px;margin-bottom:8px;max-width:292px}
+.review-business-tag{position:relative;z-index:2;display:inline-flex;align-items:center;gap:7px;max-width:290px;padding:6px 10px;border-radius:999px;background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.10);color:#dbeafe;font-size:10px;font-weight:850;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.review-business-tag span{width:7px;height:7px;border-radius:50%;background:#60a5fa;flex:0 0 auto}
+.star-row{margin:9px 0 11px;gap:6px}
+.star-row span{width:28px;height:28px;border-radius:9px;font-size:16px}
+.qr-portal{position:relative;width:238px;height:238px;margin:2px auto 14px}
+.qr-portal-glow{position:absolute;inset:-12px;border-radius:40px;background:conic-gradient(from 210deg,#2563eb,#06b6d4,#10b981,#f59e0b,#ec4899,#2563eb);filter:blur(17px);opacity:.38}
+.qr-window{position:relative;z-index:2;width:100%;height:100%;padding:14px 14px 42px;border-radius:34px;background:linear-gradient(145deg,rgba(255,255,255,.995),rgba(244,248,255,.985));border:1px solid rgba(255,255,255,.88);box-shadow:0 18px 42px rgba(0,0,0,.28),inset 0 1px 0 rgba(255,255,255,.95);display:grid;place-items:center}
+.qr-window::before{content:"";position:absolute;inset:5px;border-radius:29px;border:1px solid rgba(37,99,235,.08);pointer-events:none}
+.premium-qr-box{position:relative;z-index:2;width:188px;height:188px;border:0;border-radius:0;background:transparent;box-shadow:none;display:grid;place-items:center;overflow:hidden}
+.premium-qr-box svg,.premium-qr-box canvas,.premium-qr-box img{display:block;max-width:100%;max-height:100%}
+.qr-scan-label{position:absolute;left:50%;bottom:12px;transform:translateX(-50%);display:flex;align-items:center;gap:7px;white-space:nowrap;color:#0f172a;font-size:9px;font-weight:1000;letter-spacing:.08em}
+.qr-scan-label b{font-size:13px}
+.qr-corner{position:absolute;width:22px;height:22px;z-index:3;opacity:.9;pointer-events:none}
+.qr-corner-tl{left:9px;top:9px;border-left:2px solid #2563eb;border-top:2px solid #2563eb;border-radius:8px 0 0 0}
+.qr-corner-tr{right:9px;top:9px;border-right:2px solid #ec4899;border-top:2px solid #ec4899;border-radius:0 8px 0 0}
+.qr-corner-bl{left:9px;bottom:35px;border-left:2px solid #10b981;border-bottom:2px solid #10b981;border-radius:0 0 0 8px}
+.qr-corner-br{right:9px;bottom:35px;border-right:2px solid #f59e0b;border-bottom:2px solid #f59e0b;border-radius:0 0 8px 0}
+.review-meta{margin-top:0}
+@media(max-width:700px){
+  .qr-portal{width:228px;height:228px}
+  .premium-qr-box{width:178px;height:178px}
+}
