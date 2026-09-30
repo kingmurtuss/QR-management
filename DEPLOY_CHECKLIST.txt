@@ -1,0 +1,23 @@
+QR FIELD OPS - QUICK DEPLOY CHECKLIST
+
+[ ] 1. Run supabase_setup.sql in Supabase SQL Editor.
+[ ] 2. Promote your own profile to admin with SQL.
+[ ] 3. Supabase Site URL = https://clever-sable-b08089.netlify.app/
+[ ] 4. Supabase Redirect URL = https://clever-sable-b08089.netlify.app/
+[ ] 5. Google Cloud redirect URI = https://<YOUR_SUPABASE_PROJECT_REF>.supabase.co/auth/v1/callback
+[ ] 6. Netlify env SUPABASE_URL = https://<YOUR_SUPABASE_PROJECT_REF>.supabase.co
+[ ] 7. Netlify env SUPABASE_PUBLISHABLE_KEY = set this value ONLY in Netlify Environment Variables
+[ ] 8. Netlify env SUPABASE_SERVICE_ROLE_KEY = set this value ONLY in Netlify Environment Variables
+[ ] 9. Upload the COMPLETE project folder (not only /site).
+[ ] 10. Redeploy after adding env variables.
+[ ] 11. Test /.netlify/functions/public-config
+[ ] 12. Sign in with Google and verify dashboard opens after redirect.
+[ ] 13. Admin Settings: QR base URL = https://clever-sable-b08089.netlify.app/qr/
+[ ] 14. Generate 3 test QR codes and assign one to a worker.
+[ ] 15. Onboard a test business and scan the QR from another phone.
+
+
+QR REDIRECT KEY NOTE
+- SUPABASE_SERVICE_ROLE_KEY may contain either the modern Supabase sb_secret_... key or the legacy service_role JWT.
+- The Netlify QR function automatically detects the key type.
+- Never expose this key in browser code.
