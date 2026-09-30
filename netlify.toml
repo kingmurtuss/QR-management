@@ -1,0 +1,13 @@
+[build]
+  publish = "site"
+  functions = "netlify/functions"
+
+[build.environment]
+  NODE_VERSION = "22"
+
+# /qr/:code is handled directly by qr-redirect.mjs using its Netlify Function config.
+# Keep the SPA fallback last for the admin/worker application.
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200
