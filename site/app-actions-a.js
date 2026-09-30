@@ -66,43 +66,244 @@ async function deleteSelectedUnusedQrs() {
   toast(`${selected.length} unused QR code${selected.length===1?'':'s'} deleted`,'success');
 }
 
+function modernQrOptions(url, size = 196) {
+  return {
+    width: size,
+    height: size,
+    type: 'svg',
+    data: url,
+    margin: 7,
+    qrOptions: { errorCorrectionLevel: 'H' },
+    dotsOptions: {
+      type: 'extra-rounded',
+      gradient: {
+        type: 'linear',
+        rotation: Math.PI / 4,
+        colorStops: [
+          { offset: 0, color: '#07111f' },
+          { offset: 0.55, color: '#173b70' },
+          { offset: 1, color: '#0f5a67' }
+        ]
+      }
+    },
+    cornersSquareOptions: {
+      type: 'extra-rounded',
+      color: '#2563eb'
+    },
+    cornersDotOptions: {
+      type: 'dot',
+      color: '#07111f'
+    },
+    backgroundOptions: { color: '#ffffff' }
+  };
+}
+
+function renderModernQr(el, url, size = 196) {
+  if (!el) return null;
+  el.innerHTML = '';
+
+  if (window.QRCodeStyling) {
+    const styled = new QRCodeStyling(modernQrOptions(url, size));
+    styled.append(el);
+    return styled;
+  }
+
+  if (window.QRCode) {
+    new QRCode(el, {
+      text: url,
+      width: size,
+      height: size,
+      colorDark: '#07111f',
+      colorLight: '#ffffff',
+      correctLevel: QRCode.CorrectLevel.H
+    });
+  }
+  return null;
+}
+
 function reviewCardMarkup(code, company, businessName = '') {
-  const title = businessName ? esc(businessName) : 'Your experience matters';
+  const businessTag = businessName
+    ? `<div class="review-business-tag"><span></span>${esc(businessName)}</div>`
+    : '';
+
   return `<div class="review-card premium-review-card">
-    <div class="review-orb orb-one"></div><div class="review-orb orb-two"></div>
+    <div class="review-orb orb-one"></div>
+    <div class="review-orb orb-two"></div>
+    <div class="review-grid-glow"></div>
+
     <div class="review-topline">
       <span class="google-review-badge"><span class="g">G</span><span>Google Review</span></span>
-      <span class="review-speed">10 SEC</span>
+      <span class="review-speed"><i></i> LIVE</span>
     </div>
-    <div class="review-eyebrow">YOUR VOICE • REAL IMPACT</div>
-    <h2>${title}<br><span>Share the moment.</span></h2>
-    <p>One quick scan. One honest review. Help a local business get discovered by the people who need it.</p>
-    <div class="star-row" aria-label="Five stars"><span>★</span><span>★</span><span>★</span><span>★</span><span>★</span></div>
-    <div class="qr-stage"><div class="qr-glow"></div><div class="qr-box premium-qr-box" id="modal-qr"></div></div>
-    <div class="scan-cta"><span class="scan-pulse"></span><span>SCAN • RATE • DONE</span><b>→</b></div>
-    <div class="review-meta"><span>${esc(code)}</span><span>Dynamic review card</span></div>
+
+    <div class="review-eyebrow">A SMALL TAP • A BIG IMPACT</div>
+    <h2>Loved the visit?<br><span>Make it count.</span></h2>
+    <p>Point your camera at the code and share your experience on Google.</p>
+    ${businessTag}
+
+    <div class="star-row" aria-label="Five stars">
+      <span>★</span><span>★</span><span>★</span><span>★</span><span>★</span>
+    </div>
+
+    <div class="qr-portal">
+      <div class="qr-portal-glow"></div>
+      <div class="qr-window">
+        <span class="qr-corner qr-corner-tl"></span>
+        <span class="qr-corner qr-corner-tr"></span>
+        <span class="qr-corner qr-corner-bl"></span>
+        <span class="qr-corner qr-corner-br"></span>
+        <div class="qr-box premium-qr-box" id="modal-qr"></div>
+        <div class="qr-scan-label"><span class="scan-pulse"></span> POINT CAMERA HERE <b>↗</b></div>
+      </div>
+    </div>
+
+    <div class="review-meta">
+      <span>${esc(code)}</span>
+      <span>Smart review link</span>
+    </div>
     <div class="review-footer">Powered by ${esc(company)}</div>
   </div>`;
 }
 
 function previewQr(id) {
-  const q = cache.qrs.find(x=>x.id===id); if (!q) return;
+  const q = cache.qrs.find(x => x.id === id);
+  if (!q) return;
+
   const url = qrUrl(q.code);
-  const business = q.business_id ? cache.businesses.find(b=>b.id===q.business_id) : null;
+  const business = q.business_id ? cache.businesses.find(b => b.id === q.business_id) : null;
   const modal = $('#modal');
-  $('#modal-content').innerHTML = `<div class="card-preview-head"><div><h2>${esc(q.code)} — Premium Review Card</h2><p class="muted small">Designed for portrait PVC printing (54 × 85.6 mm).</p></div><span class="status active">PREMIUM</span></div><div class="review-card-preview premium-preview">${reviewCardMarkup(q.code, settings.company_name||'QR Field Ops', business?.name||'')}</div><div class="form-actions"><button type="button" class="primary-btn" id="print-card-btn">Print Premium PVC Card</button></div><p class="tiny muted">QR destination: ${esc(url)}</p>`;
+
+  $('#modal-content').innerHTML = `<div class="card-preview-head">
+    <div>
+      <h2>${esc(q.code)} — Signature Review Card</h2>
+      <p class="muted small">Modern rounded QR modules, integrated scan lens, portrait PVC format.</p>
+    </div>
+    <span class="status active">SIGNATURE</span>
+  </div>
+  <div class="review-card-preview premium-preview">
+    ${reviewCardMarkup(q.code, settings.company_name || 'QR Field Ops', business?.name || '')}
+  </div>
+  <div class="form-actions">
+    <button type="button" class="primary-btn" id="print-card-btn">Print Signature PVC Card</button>
+  </div>
+  <p class="tiny muted">QR destination: ${esc(url)}</p>`;
+
   modal.showModal();
-  new QRCode($('#modal-qr'), {text:url,width:206,height:206,colorDark:'#07111f',colorLight:'#ffffff',correctLevel:QRCode.CorrectLevel.H});
-  $('#print-card-btn').addEventListener('click',()=>printQrCard(q.code,url,business?.name||''));
+  renderModernQr($('#modal-qr'), url, 188);
+  $('#print-card-btn').addEventListener('click', () => printQrCard(q.code, url, business?.name || ''));
 }
 
-function printQrCard(code,url,businessName='') {
+function printQrCard(code, url, businessName = '') {
   const w = window.open('', '_blank', 'width=620,height=900');
-  if (!w) return toast('Allow pop-ups to print the QR card','error');
-  const company = esc(settings.company_name||'QR Field Ops');
-  const title = businessName ? esc(businessName) : 'Your experience matters';
-  w.document.write(`<!doctype html><html><head><meta charset="utf-8"><title>${esc(code)}</title><style>
-  *{box-sizing:border-box}html,body{margin:0;background:#eef2f7;font-family:Inter,Arial,sans-serif}body{min-height:100vh;display:grid;place-items:center;padding:24px}.card{width:54mm;height:85.6mm;position:relative;overflow:hidden;border-radius:5.6mm;padding:5.5mm 4.8mm 4.4mm;background:radial-gradient(circle at 18% 10%,rgba(66,133,244,.42),transparent 29%),radial-gradient(circle at 88% 28%,rgba(234,67,53,.24),transparent 27%),radial-gradient(circle at 70% 92%,rgba(52,168,83,.22),transparent 28%),linear-gradient(160deg,#07111f 0%,#0b1730 54%,#111d3d 100%);color:#fff;text-align:center;box-shadow:0 18px 55px rgba(2,6,23,.28);border:.3mm solid rgba(255,255,255,.16)}.card:before{content:"";position:absolute;inset:0;background:linear-gradient(115deg,rgba(255,255,255,.10),transparent 28%,transparent 68%,rgba(255,255,255,.05));pointer-events:none}.orb{position:absolute;border-radius:50%;filter:blur(1px);opacity:.7}.o1{width:30mm;height:30mm;left:-15mm;top:27mm;background:radial-gradient(circle,rgba(66,133,244,.35),transparent 68%)}.o2{width:27mm;height:27mm;right:-14mm;bottom:12mm;background:radial-gradient(circle,rgba(251,188,5,.20),transparent 68%)}.top{display:flex;align-items:center;justify-content:space-between;position:relative;z-index:2}.google{display:flex;align-items:center;gap:1.7mm;background:rgba(255,255,255,.95);color:#111827;border-radius:999px;padding:1.3mm 2.5mm 1.3mm 1.6mm;font-size:2.6mm;font-weight:900;box-shadow:0 1mm 3mm rgba(0,0,0,.14)}.g{width:5.8mm;height:5.8mm;border-radius:50%;display:grid;place-items:center;background:#fff;font-size:4mm;font-weight:1000;color:#4285f4;border:.25mm solid #e5e7eb}.speed{font-size:2.1mm;font-weight:900;letter-spacing:.18em;color:#c7d2fe;border:.25mm solid rgba(199,210,254,.28);border-radius:999px;padding:1.3mm 2mm;background:rgba(255,255,255,.06)}.eyebrow{margin-top:4mm;font-size:2.1mm;letter-spacing:.18em;color:#93c5fd;font-weight:900}.card h1{font-size:6.6mm;line-height:.98;margin:2.2mm 0 2mm;letter-spacing:-.25mm}.card h1 span{background:linear-gradient(90deg,#93c5fd,#fbcfe8,#fde68a);-webkit-background-clip:text;color:transparent}.copy{font-size:2.55mm;line-height:1.45;color:#d5deee;margin:0 auto 2.3mm;max-width:43mm}.stars{display:flex;justify-content:center;gap:1mm;margin-bottom:2.6mm}.stars span{width:5.7mm;height:5.7mm;display:grid;place-items:center;border-radius:1.8mm;background:linear-gradient(180deg,#fff7c2,#fbbc05);color:#714700;font-size:3.6mm;box-shadow:0 .7mm 2mm rgba(251,188,5,.22)}.qrstage{position:relative;width:38mm;height:38mm;margin:0 auto 2.7mm}.halo{position:absolute;inset:-2.4mm;border-radius:5mm;background:conic-gradient(from 180deg,#4285f4,#ea4335,#fbbc05,#34a853,#4285f4);filter:blur(3mm);opacity:.42}.qr{position:relative;z-index:2;width:38mm;height:38mm;background:#fff;border-radius:4.2mm;border:2.1mm solid #fff;display:grid;place-items:center;box-shadow:0 2mm 6mm rgba(0,0,0,.30)}.cta{position:relative;z-index:2;display:flex;align-items:center;justify-content:center;gap:1.7mm;width:max-content;margin:0 auto 2.6mm;border-radius:999px;padding:1.8mm 3.4mm;background:linear-gradient(90deg,#fff,#f8fbff);color:#0f172a;font-size:2.35mm;font-weight:1000;letter-spacing:.08em;box-shadow:0 1.2mm 3mm rgba(0,0,0,.20)}.dot{width:2.1mm;height:2.1mm;border-radius:50%;background:#34a853;box-shadow:0 0 0 1.2mm rgba(52,168,83,.16)}.meta{display:flex;justify-content:space-between;gap:2mm;color:#aebbd0;font-size:2mm;font-weight:800;letter-spacing:.05em;border-top:.25mm solid rgba(255,255,255,.10);padding-top:2.2mm}.foot{margin-top:1.2mm;font-size:1.9mm;color:#7f8da5}.code{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;color:#fff}@page{size:54mm 85.6mm;margin:0}@media print{html,body{width:54mm;height:85.6mm;background:#fff}body{padding:0}.card{box-shadow:none;border-radius:0}}
-  </style></head><body><div class="card"><div class="orb o1"></div><div class="orb o2"></div><div class="top"><div class="google"><span class="g">G</span><span>Google Review</span></div><span class="speed">10 SEC</span></div><div class="eyebrow">YOUR VOICE • REAL IMPACT</div><h1>${title}<br><span>Share the moment.</span></h1><div class="copy">One quick scan. One honest review. Help a local business get discovered.</div><div class="stars"><span>★</span><span>★</span><span>★</span><span>★</span><span>★</span></div><div class="qrstage"><div class="halo"></div><div class="qr" id="qr"></div></div><div class="cta"><span class="dot"></span><span>SCAN • RATE • DONE</span><b>→</b></div><div class="meta"><span class="code">${esc(code)}</span><span>Dynamic review card</span></div><div class="foot">Powered by ${company}</div></div><script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"><\/script><script>window.onload=function(){var el=document.getElementById('qr');new QRCode(el,{text:${JSON.stringify(url)},width:132,height:132,colorDark:'#07111f',colorLight:'#ffffff',correctLevel:QRCode.CorrectLevel.H});setTimeout(function(){var canvas=el.querySelector('canvas');var imgs=el.querySelectorAll('img');if(canvas){canvas.style.display='block';imgs.forEach(function(img){img.style.display='none'})}else if(imgs[0]){imgs[0].style.display='block'}window.print()},450)}<\/script></body></html>`);
+  if (!w) return toast('Allow pop-ups to print the QR card', 'error');
+
+  const company = esc(settings.company_name || 'QR Field Ops');
+  const business = businessName ? `<div class="business"><span></span>${esc(businessName)}</div>` : '';
+
+  w.document.write(`<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>${esc(code)}</title>
+<style>
+*{box-sizing:border-box}
+html,body{margin:0;background:#e9eef6;font-family:Inter,Arial,sans-serif}
+body{min-height:100vh;display:grid;place-items:center;padding:24px}
+.card{width:54mm;height:85.6mm;position:relative;overflow:hidden;border-radius:5.8mm;padding:5.1mm 4.5mm 3.8mm;color:#fff;text-align:center;background:
+radial-gradient(circle at 14% 8%,rgba(59,130,246,.48),transparent 28%),
+radial-gradient(circle at 92% 18%,rgba(236,72,153,.20),transparent 25%),
+radial-gradient(circle at 76% 92%,rgba(16,185,129,.20),transparent 28%),
+linear-gradient(160deg,#06101e 0%,#0b1830 55%,#122243 100%);
+box-shadow:0 18px 55px rgba(2,6,23,.30);border:.25mm solid rgba(255,255,255,.14)}
+.card:before{content:"";position:absolute;inset:0;background:
+linear-gradient(115deg,rgba(255,255,255,.10),transparent 30%,transparent 70%,rgba(255,255,255,.04)),
+repeating-linear-gradient(90deg,transparent 0 6mm,rgba(255,255,255,.018) 6mm 6.2mm);
+pointer-events:none}
+.orb{position:absolute;border-radius:50%;filter:blur(.8mm);opacity:.72}
+.o1{width:32mm;height:32mm;left:-17mm;top:28mm;background:radial-gradient(circle,rgba(37,99,235,.40),transparent 68%)}
+.o2{width:27mm;height:27mm;right:-14mm;bottom:8mm;background:radial-gradient(circle,rgba(16,185,129,.22),transparent 68%)}
+.top{position:relative;z-index:2;display:flex;align-items:center;justify-content:space-between}
+.google{display:flex;align-items:center;gap:1.6mm;background:rgba(255,255,255,.96);color:#101828;border-radius:999px;padding:1.2mm 2.3mm 1.2mm 1.4mm;font-size:2.5mm;font-weight:900;box-shadow:0 1mm 3mm rgba(0,0,0,.14)}
+.g{width:5.5mm;height:5.5mm;border-radius:50%;display:grid;place-items:center;background:#fff;border:.2mm solid #e5e7eb;color:#4285f4;font-size:3.8mm;font-weight:1000}
+.live{display:inline-flex;align-items:center;gap:1.2mm;padding:1.3mm 2mm;border:.22mm solid rgba(191,219,254,.30);background:rgba(255,255,255,.06);border-radius:999px;color:#dbeafe;font-size:2mm;font-weight:950;letter-spacing:.14em}
+.live i{width:1.4mm;height:1.4mm;border-radius:50%;background:#34d399;box-shadow:0 0 0 .9mm rgba(52,211,153,.12)}
+.eyebrow{position:relative;z-index:2;margin-top:3.4mm;font-size:1.9mm;letter-spacing:.18em;color:#93c5fd;font-weight:950}
+.card h1{position:relative;z-index:2;font-size:6.3mm;line-height:.98;margin:1.7mm 0 1.5mm;letter-spacing:-.24mm}
+.card h1 span{background:linear-gradient(90deg,#93c5fd,#fbcfe8,#fde68a);-webkit-background-clip:text;color:transparent}
+.copy{position:relative;z-index:2;font-size:2.25mm;line-height:1.42;color:#d3deef;max-width:43mm;margin:0 auto 1.3mm}
+.business{position:relative;z-index:2;display:inline-flex;align-items:center;gap:1.4mm;max-width:43mm;padding:1.2mm 2.1mm;border-radius:999px;background:rgba(255,255,255,.07);border:.2mm solid rgba(255,255,255,.10);color:#dbeafe;font-size:2mm;font-weight:850;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.business span{width:1.4mm;height:1.4mm;border-radius:50%;background:#60a5fa;flex:0 0 auto}
+.stars{position:relative;z-index:2;display:flex;justify-content:center;gap:.8mm;margin:1.5mm 0 1.7mm}
+.stars span{width:5mm;height:5mm;display:grid;place-items:center;border-radius:1.6mm;background:linear-gradient(180deg,#fff8ca,#fbbc05);color:#704600;font-size:3.2mm;box-shadow:0 .6mm 1.6mm rgba(251,188,5,.20)}
+.portal{position:relative;width:41.5mm;height:41.5mm;margin:0 auto 1.8mm}
+.portalglow{position:absolute;inset:-2.2mm;border-radius:8mm;background:conic-gradient(from 210deg,#2563eb,#06b6d4,#10b981,#f59e0b,#ec4899,#2563eb);filter:blur(3.1mm);opacity:.40}
+.window{position:relative;z-index:2;width:100%;height:100%;padding:2.2mm 2.2mm 6.1mm;border-radius:6.2mm;background:linear-gradient(145deg,rgba(255,255,.99),rgba(244,248,255,.98));border:.25mm solid rgba(255,255,255,.82);box-shadow:0 2mm 7mm rgba(0,0,0,.28),inset 0 .3mm 0 rgba(255,255,255,.9);display:grid;place-items:center}
+.qr{width:32.8mm;height:32.8mm;display:grid;place-items:center}
+.qr svg,.qr canvas,.qr img{display:block;max-width:100%;max-height:100%}
+.scan{position:absolute;left:50%;bottom:1.25mm;transform:translateX(-50%);display:flex;align-items:center;gap:1.2mm;color:#0f172a;font-size:1.8mm;font-weight:1000;letter-spacing:.07em;white-space:nowrap}
+.scan i{width:1.45mm;height:1.45mm;border-radius:50%;background:#22c55e;box-shadow:0 0 0 .8mm rgba(34,197,94,.14)}
+.corner{position:absolute;width:4mm;height:4mm;z-index:3;opacity:.85}
+.tl{left:1.5mm;top:1.5mm;border-left:.45mm solid #2563eb;border-top:.45mm solid #2563eb;border-radius:1.1mm 0 0 0}
+.tr{right:1.5mm;top:1.5mm;border-right:.45mm solid #ec4899;border-top:.45mm solid #ec4899;border-radius:0 1.1mm 0 0}
+.bl{left:1.5mm;bottom:5.3mm;border-left:.45mm solid #10b981;border-bottom:.45mm solid #10b981;border-radius:0 0 0 1.1mm}
+.br{right:1.5mm;bottom:5.3mm;border-right:.45mm solid #f59e0b;border-bottom:.45mm solid #f59e0b;border-radius:0 0 1.1mm 0}
+.meta{position:relative;z-index:2;display:flex;justify-content:space-between;gap:2mm;border-top:.22mm solid rgba(255,255,255,.10);padding-top:1.8mm;color:#aab9d0;font-size:1.9mm;font-weight:850;letter-spacing:.05em}
+.meta .code{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;color:#fff}
+.foot{position:relative;z-index:2;margin-top:.9mm;color:#73829a;font-size:1.7mm}
+@page{size:54mm 85.6mm;margin:0}
+@media print{html,body{width:54mm;height:85.6mm;background:#fff}body{padding:0}.card{box-shadow:none;border-radius:0}}
+</style>
+</head>
+<body>
+<div class="card">
+  <div class="orb o1"></div><div class="orb o2"></div>
+  <div class="top"><div class="google"><span class="g">G</span><span>Google Review</span></div><div class="live"><i></i>LIVE</div></div>
+  <div class="eyebrow">A SMALL TAP • A BIG IMPACT</div>
+  <h1>Loved the visit?<br><span>Make it count.</span></h1>
+  <div class="copy">Point your camera at the code and share your experience on Google.</div>
+  ${business}
+  <div class="stars"><span>★</span><span>★</span><span>★</span><span>★</span><span>★</span></div>
+  <div class="portal">
+    <div class="portalglow"></div>
+    <div class="window">
+      <span class="corner tl"></span><span class="corner tr"></span><span class="corner bl"></span><span class="corner br"></span>
+      <div class="qr" id="qr"></div>
+      <div class="scan"><i></i>POINT CAMERA HERE <b>↗</b></div>
+    </div>
+  </div>
+  <div class="meta"><span class="code">${esc(code)}</span><span>Smart review link</span></div>
+  <div class="foot">Powered by ${company}</div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/qr-code-styling@1.9.2/lib/qr-code-styling.js"><\/script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"><\/script>
+<script>
+window.onload=function(){
+  var el=document.getElementById('qr');
+  if(window.QRCodeStyling){
+    var qr=new QRCodeStyling({
+      width:124,height:124,type:'svg',data:${JSON.stringify(url)},margin:5,
+      qrOptions:{errorCorrectionLevel:'H'},
+      dotsOptions:{
+        type:'extra-rounded',
+        gradient:{type:'linear',rotation:0.7853981634,colorStops:[
+          {offset:0,color:'#07111f'},
+          {offset:0.55,color:'#173b70'},
+          {offset:1,color:'#0f5a67'}
+        ]}
+      },
+      cornersSquareOptions:{type:'extra-rounded',color:'#2563eb'},
+      cornersDotOptions:{type:'dot',color:'#07111f'},
+      backgroundOptions:{color:'#ffffff'}
+    });
+    qr.append(el);
+  }else{
+    new QRCode(el,{text:${JSON.stringify(url)},width:124,height:124,colorDark:'#07111f',colorLight:'#ffffff',correctLevel:QRCode.CorrectLevel.H});
+  }
+  setTimeout(function(){window.print()},650);
+};
+<\/script>
+</body>
+</html>`);
   w.document.close();
 }
