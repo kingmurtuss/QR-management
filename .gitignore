@@ -1,0 +1,12 @@
+# Secrets
+.env
+.env.*
+!.env.example
+
+# Netlify local state
+.netlify/
+
+# Dependencies / logs
+node_modules/
+npm-debug.log*
+.DS_Store
