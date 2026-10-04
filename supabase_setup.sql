@@ -1,6 +1,6 @@
 -- QR Field Ops - Supabase setup / upgrade
 -- Safe principle: QR numbers come from a sequence and are never reused.
--- Admins may delete ONLY completely unused QR rows.
+-- Admins may delete any QR row.
 -- Run in Supabase SQL Editor as a project owner.
 
 create extension if not exists pgcrypto;
@@ -220,33 +220,7 @@ select
 from auth.users u
 where not exists (select 1 from public.profiles p where p.id = u.id);
 
--- Database-level guard: even privileged accidental deletes cannot remove used QR history.
-create or replace function private.protect_qr_history_delete()
-returns trigger
-language plpgsql
-security invoker
-set search_path = public, pg_temp
-as $$
-begin
-  if old.status <> 'available'
-     or old.worker_id is not null
-     or old.business_id is not null
-     or old.assigned_at is not null
-     or old.activated_at is not null
-     or coalesce(old.scan_count,0) <> 0
-     or exists (select 1 from public.qr_scans s where s.qr_id = old.id)
-     or exists (select 1 from public.businesses b where b.qr_id = old.id)
-  then
-    raise exception 'Only completely unused QR codes can be deleted';
-  end if;
-  return old;
-end;
-$$;
-
-drop trigger if exists protect_qr_history_delete on public.qr_codes;
-create trigger protect_qr_history_delete
-before delete on public.qr_codes
-for each row execute function private.protect_qr_history_delete();
+-- No deletion guard: admins may delete any QR code, including assigned or scanned ones.
 
 create or replace function public.generate_qr_codes(p_count integer)
 returns integer
@@ -455,6 +429,7 @@ drop policy if exists settings_select on public.settings;
 drop policy if exists settings_admin_update on public.settings;
 drop policy if exists qr_select on public.qr_codes;
 drop policy if exists qr_admin_delete_unused on public.qr_codes;
+drop policy if exists qr_admin_delete on public.qr_codes;
 drop policy if exists businesses_select on public.businesses;
 drop policy if exists businesses_admin_update on public.businesses;
 drop policy if exists withdrawals_select on public.withdrawals;
@@ -493,16 +468,10 @@ using (
   or worker_id = (select auth.uid())
 );
 
-create policy qr_admin_delete_unused on public.qr_codes
+create policy qr_admin_delete on public.qr_codes
 for delete to authenticated
 using (
   private.is_admin((select auth.uid()))
-  and status = 'available'
-  and worker_id is null
-  and business_id is null
-  and assigned_at is null
-  and activated_at is null
-  and coalesce(scan_count,0) = 0
 );
 
 create policy businesses_select on public.businesses

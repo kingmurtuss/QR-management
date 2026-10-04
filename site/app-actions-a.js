@@ -27,10 +27,10 @@ async function assignQrs(e) {
 
 async function deleteQr(id) {
   const q = cache.qrs.find(x=>x.id===id); if (!q) return;
-  if (!confirm(`Delete unused ${q.code}? This is only allowed because it has never been assigned or used. The number will never be reused.`)) return;
+  if (!confirm(`Delete ${q.code}? This QR number will never be reused.`)) return;
   const { error } = await sb.from('qr_codes').delete().eq('id',id);
   if (error) return toast(error.message,'error');
-  await logActivity(`Deleted unused QR ${q.code}`,'qr_codes',id);
+  await logActivity(`Deleted QR ${q.code}`,'qr_codes',id);
   await refreshAll(false); renderPage(); toast(`${q.code} deleted`,'success');
 }
 
@@ -52,18 +52,17 @@ function syncQrDeleteSelection() {
 async function deleteSelectedUnusedQrs() {
   if (!isAdmin()) return;
   const ids = $$('.qr-delete-check').filter(box => box.checked).map(box => box.value);
-  if (!ids.length) return toast('Select at least one unused QR code','error');
+  if (!ids.length) return toast('Select at least one QR code','error');
   const selected = cache.qrs.filter(q => ids.includes(q.id));
-  if (selected.some(q => !isDeletableQr(q))) return toast('One selected QR is no longer safe to delete. Refresh and try again.','error');
   const sample = selected.slice(0, 6).map(q => q.code).join(', ');
   const extra = selected.length > 6 ? ` and ${selected.length - 6} more` : '';
-  if (!confirm(`Delete ${selected.length} unused QR code${selected.length===1?'':'s'}?\n\n${sample}${extra}\n\nThese QR numbers will never be reused.`)) return;
+  if (!confirm(`Delete ${selected.length} QR code${selected.length===1?'':'s'}?\n\n${sample}${extra}\n\nThese QR numbers will never be reused.`)) return;
   const { error } = await sb.from('qr_codes').delete().in('id', ids);
   if (error) return toast(error.message,'error');
-  await logActivity(`Deleted ${selected.length} unused QR codes`,'qr_codes',null,{codes:selected.map(q=>q.code)});
+  await logActivity(`Deleted ${selected.length} QR codes`,'qr_codes',null,{codes:selected.map(q=>q.code)});
   await refreshAll(false);
   renderPage();
-  toast(`${selected.length} unused QR code${selected.length===1?'':'s'} deleted`,'success');
+  toast(`${selected.length} QR code${selected.length===1?'':'s'} deleted`,'success');
 }
 
 function modernQrOptions(url, size = 196) {
