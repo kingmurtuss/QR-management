@@ -41,6 +41,12 @@ test('migration enforces admin settings, worker ownership, active accounts and a
     await assert.rejects(db.exec(insert(b2,worker)),/row-level security/);
     await assert.rejects(db.exec(insert(b1,other)),/row-level security/);
     await as(other); assert.equal(await count('review_reply_drafts'),0);
+    // Even if another business SELECT policy becomes broad, the add-on's own
+    // explicit ownership checks must still isolate settings and reply drafts.
+    await db.exec('reset role; create policy test_broad_business_read on public.businesses for select to authenticated using(true);');
+    await as(worker); assert.equal(await count('businesses'),2); assert.equal(await count('business_review_settings'),1); assert.equal(await count('review_reply_drafts'),1);
+    await assert.rejects(db.exec(insert(b2,worker)),/row-level security/);
+    await as(other); assert.equal(await count('businesses'),2); assert.equal(await count('business_review_settings'),1); assert.equal(await count('review_reply_drafts'),0);
     await as(disabled); assert.equal(await count('business_review_settings'),0); assert.equal(await count('review_reply_drafts'),0);
     await assert.rejects(db.exec(insert(b1,disabled)),/row-level security/);
     await as(admin); assert.equal(await count('review_reply_drafts'),1);

@@ -13,7 +13,11 @@ create policy "Review settings visible to assigned active accounts"
 on public.business_review_settings for select to authenticated
 using (
   exists (select 1 from public.profiles p where p.id = (select auth.uid()) and p.active)
-  and exists (select 1 from public.businesses b where b.id = business_id)
+  and exists (
+    select 1 from public.businesses b
+    where b.id = business_id
+      and (private.is_admin() or b.worker_id = (select auth.uid()))
+  )
 );
 create policy "Admins create review settings"
 on public.business_review_settings for insert to authenticated
@@ -43,12 +47,20 @@ create policy "Assigned active accounts read reply drafts"
 on public.review_reply_drafts for select to authenticated
 using (
   exists (select 1 from public.profiles p where p.id = (select auth.uid()) and p.active)
-  and exists (select 1 from public.businesses b where b.id = business_id)
+  and exists (
+    select 1 from public.businesses b
+    where b.id = business_id
+      and (private.is_admin() or b.worker_id = (select auth.uid()))
+  )
 );
 create policy "Assigned active accounts save their own reply drafts"
 on public.review_reply_drafts for insert to authenticated
 with check (
   created_by = (select auth.uid())
   and exists (select 1 from public.profiles p where p.id = (select auth.uid()) and p.active)
-  and exists (select 1 from public.businesses b where b.id = business_id)
+  and exists (
+    select 1 from public.businesses b
+    where b.id = business_id
+      and (private.is_admin() or b.worker_id = (select auth.uid()))
+  )
 );
