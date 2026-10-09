@@ -34,6 +34,7 @@ try{
  assert.equal(await page.locator('[data-card-theme]').count(),6);
  assert.equal(await page.locator('[data-card-pattern]').count(),4);
  await page.screenshot({path:out+'/google-review-blue-glass.png',fullPage:true});
+ console.log('QR_VISUAL_REVIEW:'+ (await page.screenshot({type:'jpeg',quality:55,fullPage:true})).toString('base64'));
  const kinds=await page.evaluate(()=>['review','restaurant'].map(kind=>({kind,themes:QRDesigns.themes(kind).map(t=>t.id),patterns:QRDesigns.patterns.map(p=>p.id)})));
  let count=0;
  for(const {kind,themes,patterns} of kinds){
@@ -95,6 +96,7 @@ try{
   await page.waitForFunction(()=>document.querySelector('.studio-status').textContent==='Ready to print or download.');
  }
  await page.screenshot({path:out+'/restaurant-bistro-glass.png',fullPage:true});
+ console.log('QR_VISUAL_RESTAURANT:'+ (await page.screenshot({type:'jpeg',quality:55,fullPage:true})).toString('base64'));
  await page.setViewportSize({width:390,height:844});
  await page.screenshot({path:out+'/restaurant-mobile.png',fullPage:true});
  assert.ok(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),'Mobile designer overflows the screen.');
