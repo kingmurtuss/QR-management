@@ -11,7 +11,7 @@ test('permanent handover, one rate snapshot, request isolation and provisioning 
   create function auth.uid() returns uuid language sql stable as $$select nullif(current_setting('request.jwt.claim.sub',true),'')::uuid$$;
   create table auth.users(id uuid primary key,raw_app_meta_data jsonb default '{}');
   create table public.profiles(id uuid primary key,role text,name text,email text,active boolean);
-  create function private.is_admin(p_user uuid default auth.uid()) returns boolean language sql stable security definer set search_path='' as $$select exists(select 1 from public.profiles where id=p_user and role='admin' and active)$$;
+  create function private.is_admin() returns boolean language sql stable security definer set search_path='' as $$select exists(select 1 from public.profiles where id=auth.uid() and role='admin' and active)$$;
   create function private.protect_profile_security() returns trigger language plpgsql set search_path='' as $$begin if auth.uid() is not null and not private.is_admin() then new.role=old.role;new.active=old.active;new.email=old.email;end if;return new;end$$;
   create trigger protect_profile_security before update on public.profiles for each row execute function private.protect_profile_security();
   create table storage.buckets(id text primary key,name text,public boolean,file_size_limit bigint,allowed_mime_types text[]);

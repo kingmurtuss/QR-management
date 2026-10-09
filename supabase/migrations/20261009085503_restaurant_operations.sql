@@ -2,7 +2,7 @@ begin;
 -- Auth provisioning succeeded, but the subsequent profile update failed because
 -- service_role could not use the private schema called by the profile trigger.
 grant usage on schema private to service_role;
-grant execute on function private.is_admin(uuid) to service_role;
+grant execute on function private.is_admin() to service_role;
 alter table public.restaurant_venues add column handed_over_at timestamptz, add column handed_over_by uuid references auth.users(id);
 update public.restaurant_venues v set handed_over_at=now(),agent_support=false where not agent_support and published and exists(select 1 from public.restaurant_manager_access a where a.venue_id=v.id and a.active);
 create or replace function private.restaurant_can_manage(p_venue uuid) returns boolean
