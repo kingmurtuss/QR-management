@@ -20,6 +20,15 @@ const server=createServer(async(req,res)=>{
 });
 await new Promise(r=>server.listen(0,'127.0.0.1',r));
 const origin='http://127.0.0.1:'+server.address().port;
+function decodeCard(png,kind){
+ let result=jsQR(new Uint8ClampedArray(png.data),png.width,png.height,{inversionAttempts:'attemptBoth'});
+ if(result)return result;
+ // Camera scanners focus on the printed QR panel; retain all of its quiet zone.
+ const scale=png.width/900,x=Math.round(140*scale),y=Math.round((kind==='restaurant'?490:620)*scale),size=Math.round(620*scale);
+ const panel=new Uint8ClampedArray(size*size*4);
+ for(let row=0;row<size;row++)panel.set(png.data.subarray(((y+row)*png.width+x)*4,((y+row)*png.width+x+size)*4),row*size*4);
+ return jsQR(panel,size,size,{inversionAttempts:'attemptBoth'});
+}
 const browser=await chromium.launch({headless:true});
 try{
  const page=await browser.newPage({viewport:{width:1440,height:1100},deviceScaleFactor:1});
@@ -49,7 +58,7 @@ try{
     return Array.from(new Uint8Array(await blob.arrayBuffer()));
    },{kind,theme,pattern,url});
    const png=PNG.sync.read(Buffer.from(bytes));
-   const decoded=jsQR(new Uint8ClampedArray(png.data),png.width,png.height,{inversionAttempts:'attemptBoth'});
+   const decoded=decodeCard(png,kind);
    assert.equal(decoded?.data,url,'QR did not decode: '+kind+' / '+theme+' / '+pattern);
    if(pattern==='original'||(kind==='restaurant'&&pattern==='rounded')){
     await writeFile(out+'/'+kind+'-'+theme+'.png',Buffer.from(bytes));
@@ -75,7 +84,7 @@ try{
  await download.saveAs(out+'/downloaded-review-card.png');
  const downloaded=PNG.sync.read(await readFile(out+'/downloaded-review-card.png'));
  assert.equal(downloaded.width,1800);
- assert.equal(jsQR(new Uint8ClampedArray(downloaded.data),downloaded.width,downloaded.height)?.data,origin+'/qr-designs/?sample=review');
+ assert.equal(decodeCard(downloaded,'review')?.data,origin+'/qr-designs/?sample=review');
  downloadPromise=page.waitForEvent('download');
  await page.locator('[data-card-export="qr"]').click();download=await downloadPromise;
  await download.saveAs(out+'/downloaded-qr-only.png');
@@ -129,7 +138,47 @@ try{
   await c.ready;return Array.from(new Uint8Array(await (await QRDesigns.pngBlob(c.svg,1800)).arrayBuffer()));
  },longURL);
  const long=PNG.sync.read(Buffer.from(longBytes));
- assert.equal(jsQR(new Uint8ClampedArray(long.data),long.width,long.height)?.data,longURL);
+ assert.equal(decodeCard(long,'restaurant')?.data,longURL);
+ // Premium preview and access control.
+ await page.evaluate(()=>localStorage.removeItem('yam-demo-theme-requests:v1'));
+ await page.goto(origin+'/restaurants/?manager-demo=1');
+ await page.locator('[data-nav="themes"]').click();
+ assert.equal(await page.locator('[data-theme-preview]').count(),4);
+ assert.equal(await page.locator('[data-theme-choice="garden"]').count(),0);
+ assert.equal(await page.locator('[data-theme-request]').count(),3);
+ await page.locator('[data-theme-preview="garden"]').click();
+ await page.frameLocator('#dialog iframe').locator('body[data-guest-theme="garden"]').waitFor();
+ assert.equal(await page.evaluate(()=>selected.theme),'glass-bistro');
+ await page.screenshot({path:out+'/locked-theme-preview.png',fullPage:true});
+ await page.locator('#dialog .close').click();
+ await page.locator('[data-theme-request="garden"]').click();
+ await page.waitForFunction(()=>requests.some(r=>r.service_name==='guest-theme:garden'&&r.status==='open'));
+ assert.equal(await page.locator('[data-theme-choice="garden"]').count(),0);
+ await page.goto(origin+'/restaurants/?admin-demo=1');
+ await page.locator('[data-nav="venues"]').click();await page.locator('[data-edit]').first().click();await page.locator('[data-tab="themes"]').click();
+ await page.locator('[data-theme-access="garden"][data-enabled="true"]').click();
+ await page.locator('[data-theme-access="garden"][data-enabled="false"]').waitFor();
+ assert.equal(await page.locator('[data-theme-access="cafe"]').getAttribute('data-enabled'),'true');
+ await page.screenshot({path:out+'/admin-theme-access.png',fullPage:true});
+ await page.goto(origin+'/restaurants/?manager-demo=1');await page.locator('[data-nav="themes"]').click();
+ await page.locator('[data-theme-choice="garden"]').click();await page.waitForFunction(()=>selected.theme==='garden');
+ assert.equal(await page.locator('[data-theme-choice="cafe"]').count(),0);
+ await page.goto(origin+'/restaurants/?admin-demo=1');
+ await page.locator('[data-nav="venues"]').click();await page.locator('[data-edit]').first().click();await page.locator('[data-tab="themes"]').click();
+ await page.locator('[data-theme-access="garden"][data-enabled="false"]').click();await page.locator('[data-theme-access="garden"][data-enabled="true"]').waitFor();
+ await page.goto(origin+'/restaurants/?manager-demo=1');await page.locator('[data-nav="themes"]').click();
+ assert.equal(await page.locator('[data-theme-choice="garden"]').count(),0);assert.equal(await page.locator('[data-theme-choice="glass-bistro"]').count(),1);
+ for(const theme of ['glass-bistro','garden','midnight','cafe']){
+  await page.goto(origin+'/restaurants/?venue=demo&theme='+theme);await page.locator('body[data-guest-theme="'+theme+'"]').waitFor();
+  await page.locator('.menu-category-card').first().waitFor();assert.equal(await page.locator('.menu-category-card').count(),3);
+  await page.locator('#category-search').fill('cappuccino');assert.equal(await page.locator('.menu-category-card:visible').count(),1);await page.locator('#category-search').fill('');
+  await page.setViewportSize({width:390,height:844});assert.ok(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),'Guest layout overflows: '+theme);
+  await page.screenshot({path:out+'/guest-'+theme+'-mobile.png',fullPage:true});
+  await page.locator('[data-category="Mains"]').click();assert.equal(await page.locator('.menu-item').count(),2);assert.ok((await page.locator('#menu-items').innerText()).includes('490'));
+  await page.locator('#menu-search').fill('pasta');assert.equal(await page.locator('.menu-item:visible').count(),1);await page.locator('#menu-search').fill('');
+  await page.screenshot({path:out+'/menu-'+theme+'-mobile.png',fullPage:true});await page.setViewportSize({width:1440,height:1100});
+ }
+ console.log('PASS: four guest layouts, locked previews, add-on requests, admin activation/revocation, manager selection, category navigation, search and mobile layouts.');
  // Existing Google review modal integrates the designer with an assigned business.
  await page.goto(origin+'/');
  await page.waitForFunction(()=>typeof previewQr==='function');

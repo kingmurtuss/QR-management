@@ -1,3 +1,4 @@
+.qr-design-studio,.qr-design-studio *{box-sizing:border-box}
 /* Print designs use fixed colours; dashboard appearance never recolours a card. */
 .qr-design-host{padding:26px}.qr-design-studio{font-family:var(--ui-font,Arial,sans-serif);color:var(--ui-text,#18324f)}
 .studio-layout{display:grid;grid-template-columns:minmax(0,1.08fr) minmax(270px,.92fr);gap:28px;align-items:start}

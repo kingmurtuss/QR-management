@@ -1,3 +1,4 @@
+import {guestThemeAccess,publishedGuestTheme} from './lib/restaurant-theme-access.mjs';
 import {createHash, randomBytes} from 'node:crypto';
 
 const json=(data,status=200)=>new Response(JSON.stringify(data),{status,headers:{'content-type':'application/json','cache-control':'no-store','x-content-type-options':'nosniff'}});
@@ -34,6 +35,10 @@ export default async function handler(req) {
   const v=venues[0];if(!v||v.suspended)return json({error:'This restaurant page is not published'},404);
   if(b.action==='venue'){
    const {owner_id,created_by,agent_support,suspended,handed_over_at,handed_over_by,...venue}=v;
+   // Completed theme add-ons can only be approved by the administrator.
+   // Never serve a paid design just because a client wrote its theme ID.
+   const themeRequests=await db('restaurant_requests?venue_id=eq.'+v.id+'&kind=eq.addon&status=eq.completed&select=venue_id,kind,status,service_name');
+   venue.theme=publishedGuestTheme(v.theme,guestThemeAccess(themeRequests,v.id));
    if(!v.wifi_enabled){venue.wifi_ssid='';venue.wifi_password='';}
    await db('restaurant_events','POST',{venue_id:v.id,event:'scan'});
    return json({venue});
