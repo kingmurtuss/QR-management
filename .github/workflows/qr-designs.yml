@@ -1,0 +1,42 @@
+name: QR design verification
+on:
+  pull_request:
+    paths:
+      - 'site/**'
+      - 'tests/**'
+      - 'scripts/check-qr-designs.mjs'
+      - 'package*.json'
+      - '.github/workflows/qr-designs.yml'
+  push:
+    branches: [main]
+    paths:
+      - 'site/**'
+      - 'tests/**'
+      - 'scripts/check-qr-designs.mjs'
+      - 'package*.json'
+      - '.github/workflows/qr-designs.yml'
+permissions:
+  contents: read
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - run: npm run check
+      - run: npm test
+      - name: Install browser verification tools
+        run: npm install --no-save playwright@1.55.0 jsqr@1.4.0 pngjs@7.0.0 qr-code-styling@1.9.2 qrcodejs@1.0.0
+      - run: npx playwright install --with-deps chromium
+      - run: npm run check:qr-browser
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: qr-design-proof
+          path: artifacts/qr-designs/
+          if-no-files-found: ignore
