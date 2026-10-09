@@ -223,3 +223,30 @@
 
 /* Responsive hardening — premium guest themes and previews */
 @media(max-width:750px){:root .restaurant-app[data-guest-theme] .guest-body{max-width:100%;overflow:hidden}:root .restaurant-app[data-guest-theme] .guest-links{grid-template-columns:1fr}:root .restaurant-app[data-guest-theme] .menu-item{max-width:100%;min-width:0}:root .restaurant-app[data-guest-theme] .menu-item img,:root .restaurant-app[data-guest-theme] .dish-art{max-width:42vw}:root .restaurant-app[data-guest-theme] .category{max-width:100%;overflow-x:auto;-webkit-overflow-scrolling:touch}.theme-live-thumbnail iframe{width:300%;transform:scale(.3333)}.guest-theme-preview-frame{width:100%;max-width:100%;overflow:hidden}}
+
+/* CafeFlow-inspired original premium QR menu; browse-only, no misleading checkout. */
+:root .restaurant-app[data-guest-theme=flow-cafe]{--menu-page:#f5f8f6;--menu-paper:#fff;--menu-ink:#183a34;--menu-muted:#6d827a;--menu-accent:#0e8c73;--menu-soft:#e9f7f1;--menu-line:#dfebe5;--menu-title:'DM Sans',sans-serif;--menu-font:'DM Sans',sans-serif;--art-bg:#e3f5e9;--art-accent:#8bcdb4}
+:root .restaurant-app[data-guest-theme=flow-cafe] .guest{max-width:720px;border-radius:22px}
+:root .restaurant-app[data-guest-theme=flow-cafe] .guest-cover{height:210px;background:linear-gradient(130deg,#0c735e,#14a080)}
+:root .restaurant-app[data-guest-theme=flow-cafe] .guest-cover>.food-art{width:58%;right:-30px;top:-35px;transform:rotate(-9deg)}
+:root .restaurant-app[data-guest-theme=flow-cafe] .cover-note{top:35px;right:46%;color:#fff}
+:root .restaurant-app[data-guest-theme=flow-cafe] .cover-note p{font-size:34px}
+:root .restaurant-app[data-guest-theme=flow-cafe] .guest-body{padding:24px}
+:root .restaurant-app[data-guest-theme=flow-cafe] .menu-brand h1{font-size:29px}
+:root .restaurant-app[data-guest-theme=flow-cafe] .guest-services{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}
+:root .restaurant-app[data-guest-theme=flow-cafe] .guest-services button,:root .restaurant-app[data-guest-theme=flow-cafe] .guest-services a{justify-content:center;min-height:45px;padding:8px 6px;font-size:10px;background:var(--menu-soft);border-radius:12px;text-align:center}
+:root .restaurant-app[data-guest-theme=flow-cafe] .guest-categories{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}
+:root .restaurant-app[data-guest-theme=flow-cafe] .menu-category-card{display:flex;flex-direction:column;text-align:center;gap:9px;padding:10px;min-height:0;border-radius:16px;background:var(--menu-soft)}
+:root .restaurant-app[data-guest-theme=flow-cafe] .category-art{width:100%;height:95px;border-radius:12px}
+:root .restaurant-app[data-guest-theme=flow-cafe] .menu-category-copy b{font-size:12px}
+:root .restaurant-app[data-guest-theme=flow-cafe] .menu-category-arrow{display:none}
+:root .restaurant-app[data-guest-theme=flow-cafe] .discovery-dishes{grid-template-columns:repeat(2,minmax(0,1fr))}
+:root .restaurant-app[data-guest-theme=flow-cafe] .discovery-dishes .menu-item{flex-direction:column-reverse;align-items:stretch;padding:0;gap:0}
+:root .restaurant-app[data-guest-theme=flow-cafe] .discovery-dishes .dish-art{width:100%;height:135px;border-radius:0}
+:root .restaurant-app[data-guest-theme=flow-cafe] .discovery-dishes .menu-item-copy{padding:14px}
+:root .restaurant-app[data-guest-theme=flow-cafe] .menu-item-meta b{color:var(--menu-accent)}
+:root .restaurant-app[data-guest-theme=flow-cafe] .guest-bottom-nav{background:#fff;border-radius:20px}
+.flow-table-banner{display:flex;align-items:center;gap:11px;padding:12px 14px;margin-bottom:18px;border:1px solid var(--menu-line);border-radius:14px;background:var(--menu-soft);color:var(--menu-ink);font:600 12px var(--menu-font)}
+.flow-table-icon{font-size:22px;color:var(--menu-accent)}.flow-table-banner>div{display:flex;flex-direction:column;gap:4px;min-width:0}.flow-table-banner small{font-size:10px;font-weight:400;color:var(--menu-muted);line-height:1.5}.flow-table-live{font-size:9px;color:var(--menu-accent);margin-left:auto;white-space:nowrap}
+@media(max-width:750px){:root .restaurant-app[data-guest-theme=flow-cafe] .guest{border-radius:0}:root .restaurant-app[data-guest-theme=flow-cafe] .guest-body{padding:20px 15px 80px}:root .restaurant-app[data-guest-theme=flow-cafe] .guest-cover{height:190px}:root .restaurant-app[data-guest-theme=flow-cafe] .cover-note{right:42%;left:16px;top:27px}:root .restaurant-app[data-guest-theme=flow-cafe] .cover-note p{font-size:26px}:root .restaurant-app[data-guest-theme=flow-cafe] .guest-categories{gap:7px}:root .restaurant-app[data-guest-theme=flow-cafe] .category-art{height:75px}:root .restaurant-app[data-guest-theme=flow-cafe] .guest-services{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:390px){:root .restaurant-app[data-guest-theme=flow-cafe] .guest-categories{grid-template-columns:repeat(2,minmax(0,1fr))}:root .restaurant-app[data-guest-theme=flow-cafe] .discovery-dishes{grid-template-columns:1fr}.flow-table-live{display:none}}
