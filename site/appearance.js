@@ -3,7 +3,8 @@
   'use strict';
   const key = 'yam-appearance';
   const root = document.documentElement;
-  let theme = 'dark';
+  const guestMenu = location.pathname.startsWith('/restaurants/') && new URLSearchParams(location.search).has('venue');
+  let theme = guestMenu ? 'light' : 'dark';
   try { const saved = localStorage.getItem(key); if (saved === 'light' || saved === 'dark') theme = saved; } catch {}
   const sun = '<circle cx="12" cy="12" r="4"/><path d="M12 2v2m0 16v2M2 12h2m16 0h2M5 5l1.5 1.5m11 11L19 19M5 19l1.5-1.5m11-11L19 5"/>';
   const moon = '<path d="M20 15.5A8.5 8.5 0 0 1 8.5 4 8.5 8.5 0 1 0 20 15.5Z"/>';

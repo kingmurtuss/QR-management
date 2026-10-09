@@ -173,13 +173,13 @@ try{
  await page.goto(origin+'/restaurants/?manager-demo=1');await page.locator('[data-nav="themes"]').click();
  assert.equal(await page.locator('[data-theme-choice="garden"]').count(),0);assert.equal(await page.locator('[data-theme-choice="glass-bistro"]').count(),1);
  for(const theme of ['glass-bistro','heritage','garden','coastal','midnight','cafe']){
-  await page.goto(origin+'/restaurants/?venue=demo&theme='+theme);await page.locator('body[data-guest-theme="'+theme+'"]').waitFor();
+  await page.evaluate(()=>localStorage.removeItem('yam-appearance'));await page.goto(origin+'/restaurants/?venue=demo&theme='+theme);await page.locator('body[data-guest-theme="'+theme+'"]').waitFor();
   await page.locator('.menu-category-card').first().waitFor();assert.equal(await page.locator('.menu-category-card').count(),3);assert.ok((await page.locator('.provider-brand').innerText()).includes('YAM IT SERVICES'));
   await page.locator('#category-search').fill('cappuccino');assert.equal(await page.locator('.menu-category-card:visible').count(),1);await page.locator('#category-search').fill('');
   await page.setViewportSize({width:390,height:844});assert.ok(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),'Guest layout overflows: '+theme);
   await page.screenshot({path:out+'/guest-'+theme+'-mobile.png',fullPage:true});
  console.log('GUEST_THEME_VISUAL_'+theme+':'+(await page.screenshot({type:'jpeg',quality:55,fullPage:true})).toString('base64'));
-  await page.locator('[data-category="Mains"]').click();assert.equal(await page.locator('.menu-item').count(),2);assert.ok((await page.locator('#menu-items').innerText()).includes('490'));
+  await page.locator('#appearance-toggle').click();assert.equal(await page.locator('html').getAttribute('data-theme'),'dark');assert.ok(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),'Dark guest layout overflows: '+theme);await page.screenshot({path:out+'/guest-'+theme+'-dark.png',fullPage:true});await page.locator('#appearance-toggle').click();await page.locator('[data-category="Mains"]').click();assert.equal(await page.locator('.menu-item').count(),2);assert.ok((await page.locator('#menu-items').innerText()).includes('490'));
   await page.locator('#menu-search').fill('pasta');assert.equal(await page.locator('.menu-item:visible').count(),1);await page.locator('#menu-search').fill('');
   await page.screenshot({path:out+'/menu-'+theme+'-mobile.png',fullPage:true});console.log('GUEST_MENU_VISUAL_'+theme+':'+(await page.screenshot({type:'jpeg',quality:60,fullPage:true})).toString('base64'));await page.setViewportSize({width:1440,height:1100});
  }
