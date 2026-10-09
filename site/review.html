@@ -1,0 +1,42 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="robots" content="noindex,nofollow"><meta name="theme-color" content="#125e4d">
+  <script src="/appearance.js"></script>
+  <title>Generate your review · QR Field Ops</title>
+  <link rel="icon" href="/assets/favicon.svg"><link rel="stylesheet" href="/review.css">
+  <link rel="stylesheet" href="/appearance.css">
+  <script src="/review.js" type="module"></script>
+</head>
+<body class="review-app">
+  <header class="review-header"><div class="brand"><span class="brand-icon" aria-hidden="true">▦</span> QR Field Ops<span class="brand-tag">Review assistant</span></div><span class="secure-label">Scan. Generate. Share.</span></header>
+  <main class="review-layout">
+    <section class="review-intro">
+      <div class="eyebrow"><span></span> One scan. A simpler review.</div>
+      <div class="business-mark" id="business-mark" aria-hidden="true">▦</div>
+      <p class="business-label">Leave a review for</p><h1 id="business-name">Loading business…</h1>
+      <p class="intro-copy">Your experience. Your words.<br>A few taps, no typing.</p>
+      <div class="intro-line"></div>
+      <ol class="steps"><li class="step active"><b>01</b><span>Scan the business QR<small>The business is already selected</small></span></li><li class="step active"><b>02</b><span>Rate it. Tap what stood out.<small>We write and copy your review</small></span></li><li class="step" id="step-three"><b>03</b><span>Paste & submit on Google<small>Check your text and set your rating</small></span></li></ol>
+    </section>
+    <section class="review-panel generate-panel" aria-label="Review generator">
+      <div id="demo-banner" class="notice" hidden>Interactive preview · Sample business · No real Google review is submitted.</div>
+      <div id="page-error" class="notice error" role="alert" hidden></div>
+      <div class="panel-top"><span class="section-number">YOUR REVIEW, SIMPLIFIED</span><label class="language">Language<select id="review-language"><option>English</option><option>Hindi</option><option>Telugu</option></select></label></div>
+      <h2>How was your experience?</h2><p class="sub-copy">Tap your rating and what stood out. We’ll put your experience into words.</p>
+      <fieldset class="rating-field" id="experience-controls"><legend class="experience-label">1. Your overall rating</legend><div class="star-row" id="rating-options"></div><p class="rating-caption" id="rating-caption" aria-live="polite">Choose your rating</p></fieldset>
+      <fieldset class="highlight-field" id="highlight-controls"><legend class="experience-label">2. What stood out?</legend><p class="choice-hint" id="choice-hint">Choose 1 to 3 things that actually happened.</p><div class="highlight-grid" id="highlight-options"></div></fieldset>
+      <p class="selection-status" id="selection-status" aria-live="polite">Choose a rating and at least one detail to continue.</p>
+      <button class="generate-btn" id="generate-btn" type="button" disabled><span aria-hidden="true">✦</span> Generate Review <span aria-hidden="true">→</span></button>
+      <p class="privacy-copy">AI writes from your choices and copies the text before opening Google. Check it, paste it, set your rating, and submit.</p>
+      <section id="generated-section" hidden>
+        <p id="generation-status" class="copy-status" role="status"></p><label class="experience-label" for="generated-review">Generated review</label><textarea id="generated-review" readonly></textarea>
+        <button class="generate-btn" id="copy-continue" type="button">Copy & open Google →</button>
+        <a class="google-button" id="manual-google" hidden>Open Google after copying manually ↗</a>
+      </section>
+      <div class="direct-link"><span>Prefer to write it yourself?</span><a id="direct-google" hidden>Open Google ↗</a></div>
+    </section>
+  </main>
+  <footer class="review-footer"><span>Your opinion. Your choice to share.</span><span>Powered by QR Field Ops</span></footer>
+</body></html>

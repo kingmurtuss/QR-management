@@ -11,7 +11,8 @@ export default async () => {
     });
   }
 
-  return new Response(JSON.stringify({ supabaseUrl, supabasePublishableKey }), {
+  const reviewAiConfigured = Boolean(globalThis.Netlify?.env?.get('OPENAI_API_KEY') || process.env.OPENAI_API_KEY);
+  return new Response(JSON.stringify({ supabaseUrl, supabasePublishableKey, reviewAiConfigured }), {
     status: 200,
     headers: { 'content-type': 'application/json; charset=utf-8', 'cache-control': 'no-store' }
   });

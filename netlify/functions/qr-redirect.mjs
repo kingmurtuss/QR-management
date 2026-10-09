@@ -1,3 +1,4 @@
+import { publicBusiness } from '../lib/review-assistant.mjs';
 export const config = {
   path: "/qr/:code"
 };
@@ -85,6 +86,15 @@ export default async (req, context) => {
       if (!["http:", "https:"].includes(target.protocol)) throw new Error("Invalid protocol");
     } catch {
       return json(500, { error: "Stored review URL is invalid." });
+    }
+
+    // The same permanent printed QR routes to the optional assistant.
+    // Lookup failure falls back to the original Google destination.
+    try {
+      const business = await publicBusiness(code);
+      if (business?.enabled) target = new URL(`/review.html?code=${encodeURIComponent(code)}`, req.url);
+    } catch (error) {
+      console.warn('Review add-on lookup unavailable; using direct review route.');
     }
 
     return new Response(null, {

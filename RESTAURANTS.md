@@ -1,6 +1,6 @@
 # YAM Table restaurant module
 
-Agents use the **Set up Restaurant** entry in the existing QR workspace sidebar. It opens `/restaurants/?setup=1` and a three-step restaurant onboarding form: restaurant identity, branding, and guest features. The agent then adds the menu and publishes a restaurant QR. Existing authentication is shared for convenience. `/restaurants/?agent-demo=1&setup=1` provides a labelled agent setup demo with changes stored only in the browser. Administrators can manage all venues; other active accounts manage only the venues they own. Restaurant and Google-review QR workflows use separate records and screens. Restaurant onboarding never allocates, activates, changes or writes Google-review QR cards, businesses, scan records or commissions. The only change to the existing QR app is the new sidebar entry; all its JavaScript and Google-review functions are untouched.
+Agents use the **Set up Restaurant** entry in the existing QR workspace sidebar. It opens `/restaurants/?setup=1` and a three-step restaurant onboarding form: restaurant identity, branding, and guest features. The agent then adds the menu and publishes a restaurant QR. Existing authentication is shared for convenience. `/restaurants/?agent-demo=1&setup=1` provides a labelled agent setup demo with changes stored only in the browser. Administrators can manage all venues; other active accounts manage only the venues they own. Restaurant and Google-review QR workflows use separate records and screens. Restaurant onboarding never allocates, activates, changes or writes Google-review QR cards, businesses, scan records or commissions. The existing QR app gains the new sidebar entry and a shared glass appearance with light/dark switching. Its business logic and Google-review functions, including the current review add-on, stay unchanged.
 
 Each restaurant has an independent `REST-...` identifier, its own permanent guest link, branding, menus, guest Wi-Fi, loyalty reward and optional restaurant review link. Create a venue, add menu items, configure its guest features, and publish. The permanent guest link is `/restaurants/?venue=your-slug`. Print or download its QR from **QR & table card**. Changing content does not change this link.
 
@@ -18,7 +18,7 @@ Each restaurant has an independent `REST-...` identifier, its own permanent gues
 
 Run `restaurant_setup.sql` once on the existing Supabase project. It is an additive schema using explicit venue ownership RLS policies. Guests have no direct access to the restaurant tables; the Netlify function validates requests and applies an IP/domain rate limit. The endpoint uses the already configured `SUPABASE_URL` and `SUPABASE_SERVICE_ROLE_KEY`. Dashboard auth uses the existing public-config function.
 
-`netlify.toml` publishes `site` and routes `/restaurants/*` to its dedicated page. No build command or new dependencies are required. `.netlify` is ignored and must never be committed.
+`netlify.toml` publishes `site` and routes `/restaurants/*` to its dedicated page. The restaurant module requires no additional build command or dependencies; existing review add-on dependencies remain intact. `.netlify` is ignored and must never be committed.
 
 Verify with `node --test tests/restaurant-api.test.mjs` and `node --check site/restaurants/app.js`. Check Supabase security advisors after applying the schema.
 
