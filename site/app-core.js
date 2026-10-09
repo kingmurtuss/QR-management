@@ -214,6 +214,10 @@ async function handleAuthenticatedSession(nextSession) {
     showLogin('Login succeeded, but this account has no profile row. Run supabase_setup.sql and sign in again.');
     return;
   }
+  if (session.user.app_metadata?.account_type === 'restaurant_manager') {
+    location.replace('/restaurants/?manager=1');
+    return;
+  }
   if (p.active === false) {
     await sb.auth.signOut();
     showLogin('This account is disabled. Contact your administrator.');
