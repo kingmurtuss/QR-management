@@ -26,14 +26,14 @@ export default async function handler(req) {
   let venues;
   if(b.action==='venue'){
    if(!/^[a-z0-9][a-z0-9-]{2,59}$/.test(b.slug||''))return json({error:'Invalid restaurant link'},400);
-   venues=await db(`restaurant_venues?slug=eq.${encodeURIComponent(b.slug)}&published=eq.true&limit=1`);
+   venues=await db(`restaurant_venues?slug=eq.${encodeURIComponent(b.slug)}&published=eq.true&suspended=eq.false&limit=1`);
   }else{
    if(!uuid.test(b.venue_id||'')) return json({error:'Invalid restaurant'},400);
-   venues=await db(`restaurant_venues?id=eq.${b.venue_id}&published=eq.true&limit=1`);
+   venues=await db(`restaurant_venues?id=eq.${b.venue_id}&published=eq.true&suspended=eq.false&limit=1`);
   }
-  const v=venues[0];if(!v)return json({error:'This restaurant page is not published'},404);
+  const v=venues[0];if(!v||v.suspended)return json({error:'This restaurant page is not published'},404);
   if(b.action==='venue'){
-   const {owner_id,...venue}=v;
+   const {owner_id,created_by,agent_support,suspended,...venue}=v;
    if(!v.wifi_enabled){venue.wifi_ssid='';venue.wifi_password='';}
    await db('restaurant_events','POST',{venue_id:v.id,event:'scan'});
    return json({venue});

@@ -1,37 +1,38 @@
-# YAM Table restaurant module
+# Restaurant workspace
 
-Agents use the **Set up Restaurant** entry in the existing QR workspace sidebar. It opens `/restaurants/?setup=1` and a three-step restaurant onboarding form: restaurant identity, branding, and guest features. The agent then adds the menu and publishes a restaurant QR. Existing authentication is shared for convenience. `/restaurants/?agent-demo=1&setup=1` provides a labelled agent setup demo with changes stored only in the browser. Administrators can manage all venues; other active accounts manage only the venues they own. Restaurant and Google-review QR workflows use separate records and screens. Restaurant onboarding never allocates, activates, changes or writes Google-review QR cards, businesses, scan records or commissions. The existing QR app gains the new sidebar entry and a shared glass appearance with light/dark switching. Its business logic and Google-review functions, including the current review add-on, stay unchanged.
+The Google-review workspace stays separate and uses abstract blue glass surfaces, with no restaurant photographs. Its existing QR inventory, review generation, handoff, payments and business records are unchanged. The sidebar opens **Set up Restaurant** using the same Supabase session key (`qr-field-ops-auth`); signing in once is enough for agents and admins on the same origin. Restaurant-only manager accounts are redirected from the root sign-in to their own dashboard.
 
-Each restaurant has an independent `REST-...` identifier, its own permanent guest link, branding, menus, guest Wi-Fi, loyalty reward and optional restaurant review link. Create a venue, add menu items, configure its guest features, and publish. The permanent guest link is `/restaurants/?venue=your-slug`. Print or download its QR from **QR & table card**. Changing content does not change this link.
+## Agent onboarding and manager handover
 
-## Included
+1. Set up a restaurant name, permanent slug, type, theme and guest connections.
+2. Open **Manager & handover** and create a restaurant-only manager login with the manager's email and an initial password of at least 12 characters. Share the password securely outside the app. Existing accounts are never reset by an agent. Managers change the password in **My account**.
+3. Add dishes, upload photos and publish the guest page. Show the manager how to edit menus, images, themes, Google review links and Wi-Fi using the built-in guide.
+4. Finish handover. Agent editing ends; original setup attribution stays immutable. Admins can restore support or assign another support agent without transferring setup credit.
 
-- Multiple branded restaurant pages, dish categories, search, prices, photos, allergens, dietary labels and sold-out states.
-- Guest Wi-Fi credentials, copy-password button and standard Wi-Fi QR.
-- Private feedback with food/service ratings, resolution tracking and CSV export.
-- Optional Google review link shown equally to every guest regardless of rating.
-- Browser-based loyalty cards protected by random 256-bit tokens; only token hashes are stored server-side. Staff stamp and redeem cards using an atomic RLS-enforced SQL function.
-- Restaurant dashboards, scan/feature analytics, loyalty members and QR table cards.
-- Phone and desktop layouts. `/restaurants/?venue=demo` is a clearly labelled fictional demo.
+Managers access only their assigned restaurants, menu settings, feedback and loyalty members. They cannot create restaurants, manage agents or approve commissions. Their field-worker profile is inactive by a database trigger keyed to server-controlled account metadata; venue access is granted through `restaurant_manager_access`, never user metadata.
 
-## Deployment
+## Admin oversight
 
-Run `restaurant_setup.sql` once on the existing Supabase project. It is an additive schema using explicit venue ownership RLS policies. Guests have no direct access to the restaurant tables; the Netlify function validates requests and applies an IP/domain rate limit. The endpoint uses the already configured `SUPABASE_URL` and `SUPABASE_SERVICE_ROLE_KEY`. Dashboard auth uses the existing public-config function.
+Administrators manage all restaurants, pause/restore public guest pages, disable/restore manager access, assign support agents and edit restaurant content. **Agent performance** paginates all restaurant setups and reports totals, live venues, manager-ready venues and completed handovers per original agent. CSV export includes setup and commission information.
 
-`netlify.toml` publishes `site` and routes `/restaurants/*` to its dedicated page. The restaurant module requires no additional build command or dependencies; existing review add-on dependencies remain intact. `.netlify` is ignored and must never be committed.
+**Restaurant commissions** uses one row per venue. Admins choose amount/currency, approve/reject and subsequently record paid status. Approval requires an active manager and a published, unpaused menu. Paid status requires prior approval. This records decisions and payments; it does not transfer money or modify the original Google-review wallet/commission system. Currency totals are shown separately. Agents can read their own commission records; managers cannot.
 
-Verify with `node --test tests/restaurant-api.test.mjs` and `node --check site/restaurants/app.js`. Check Supabase security advisors after applying the schema.
+## Guest themes and image uploads
 
-## Practical limits
+Six selectable styles: Glass Bistro (Outfit), Garden Table (Manrope), Spice & Heritage (Cormorant Garamond), Coastal Blue (DM Sans), Midnight Dining (Cormorant Garamond), and Café Cream (Fraunces). Guest pages use the selected style and the global light/dark preference. Changing themes or menus preserves the restaurant's permanent QR URL.
 
-This is a browser product, without native App Clips, signed Apple/Google Wallet passes, automatic Instagram import, AI menu OCR, bulk messaging, payment collection or subscriptions. Native wallet passes require issuer credentials and signing infrastructure. Menus are edited manually and photos use HTTPS URLs. No ordering or checkout is promised by the guest page.
+Menu editing includes names, categories, prices, descriptions, dietary labels, allergens, sold-out states, photos and ordering. Logos, cover images and dish photos support direct JPG/PNG/WebP uploads up to 5 MB, as well as HTTPS links. The public `restaurant-images` bucket stores public menu assets in venue-specific paths. Uploads are authorized by venue RLS and use immutable unique filenames, so replacement does not overwrite another restaurant's assets.
 
-Loyalty cards stay in the same browser/device; clearing storage loses access. Staff should match the full card ID before issuing stamps. Dashboard lists show the latest 1,000 members and feedback records; event analytics query the last 30 days, up to 10,000 records. Wi-Fi details are public when enabled: use a dedicated guest network.
+Google review links are optional and shown equally to all guests irrespective of private feedback ratings. Loyalty cards use random browser credentials and staff-only atomic stamp/redeem actions. A member QR identifies the card; it never awards stamps itself.
 
-Do not reward Google reviews, filter access to public reviews by rating, or claim that a click confirms a posted review. Private feedback submissions and public reviews are separate.
+## Deployment and validation
 
-## Appearance and membership QR
+Existing installations apply `supabase/migrations/20261009063719_restaurant_manager_control.sql` after `restaurant_setup.sql`. The migration is additive and updates only restaurant access policies plus the new-identity profile guard. Supabase storage remains public for menu images, with venue ownership enforced on uploads. Netlify `restaurant-manage.mjs` verifies the bearer token with Supabase and checks database-backed administrator/agent/manager access before privileged operations. Service credentials remain server-only.
 
-Both dashboards share `appearance.css` and `appearance.js`: frosted glass, copper accents, Outfit headings and Plus Jakarta Sans text. A floating light/dark toggle is available on sign-in, workspace and guest screens; its preference persists in this browser and synchronises across tabs on the same origin. The two apps retain independent data and business logic.
+Run `npm test` and `npm run check`. Tests exercise manager isolation, disabled accounts, immutable credit, handover, commission eligibility and approval sequencing, storage ownership and endpoint authorization, alongside existing Google-review tests.
 
-A loyalty QR encodes the full member ID as plain text. It is not a web link and does not add stamps automatically. Staff match the ID in Loyalty members before stamping or redeeming. The guest page explains this beside one square code; canvas and image are no longer displayed together. QR codes retain a white background in either theme and in print.
+Labelled demo routes `?agent-demo=1`, `?admin-demo=1`, `?manager-demo=1` store demo edits in this browser only. Guest `?venue=demo&preview=<demo-id>` previews those edits without altering live records. Real venues use `?venue=<slug>` and must be published and not paused.
+
+## Limits
+
+Browser loyalty stays on the original device. Guest/member analytics list recent bounded records, while setup attribution counts paginate all venues. This app does not collect orders or payments, supply native wallet passes, scan menus with AI, or send marketing messages. Manager email/password creation does not send email; agents share credentials securely and managers update their initial password after onboarding.
