@@ -1,12 +1,12 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import handler from '../netlify/functions/restaurant-api.mjs';
-const venue={id:'aaaaaaaa-aaaa-4aaa-aaaa-aaaaaaaaaaaa',owner_id:'private-owner',created_by:'private-agent',agent_support:true,suspended:false,slug:'test-venue',published:true,wifi_enabled:false,wifi_ssid:'private',wifi_password:'private',loyalty_enabled:true};
+const venue={id:'aaaaaaaa-aaaa-4aaa-aaaa-aaaaaaaaaaaa',owner_id:'private-owner',created_by:'private-agent',agent_support:true,suspended:false,handed_over_at:'private-date',handed_over_by:'private-actor',slug:'test-venue',published:true,wifi_enabled:false,wifi_ssid:'private',wifi_password:'private',loyalty_enabled:true};
 process.env.SUPABASE_URL='https://example.supabase.co';process.env.SUPABASE_SERVICE_ROLE_KEY='sb_secret_test';
 const req=b=>new Request('https://example.netlify.app/api/restaurant',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify(b)});
 test('public profile excludes owner and disabled Wi-Fi credentials',async()=>{
  global.fetch=async(url,init)=>new Response(JSON.stringify(init.method==='GET'?[venue]:[]),{status:200});
- const r=await handler(req({action:'venue',slug:'test-venue'}));const d=await r.json();assert.equal(r.status,200);assert.equal(d.venue.owner_id,undefined);assert.equal(d.venue.created_by,undefined);assert.equal(d.venue.agent_support,undefined);assert.equal(d.venue.wifi_password,'');
+ const r=await handler(req({action:'venue',slug:'test-venue'}));const d=await r.json();assert.equal(r.status,200);assert.equal(d.venue.owner_id,undefined);assert.equal(d.venue.created_by,undefined);assert.equal(d.venue.agent_support,undefined);assert.equal(d.venue.handed_over_at,undefined);assert.equal(d.venue.handed_over_by,undefined);assert.equal(d.venue.wifi_password,'');
 });
 test('feedback validates ratings before insert',async()=>{
  let writes=0;global.fetch=async(url,init)=>{if(init.method==='POST')writes++;return new Response(JSON.stringify([venue]));};
