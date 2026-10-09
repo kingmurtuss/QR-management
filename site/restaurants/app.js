@@ -192,7 +192,9 @@ document.addEventListener('submit',e=>{const f=e.target;if(!f.id)return;e.preven
  if(f.id==='password-form'){if(data.password!==data.confirm)throw Error('The passwords do not match.');if(!localDemo)check(await sb.auth.updateUser({password:data.password}));f.reset();toast('Password updated.');}
  if(f.id==='login'){const r=await sb.auth.signInWithPassword({email:data.email,password:data.password});if(r.error){login(r.error.message);return;}location.reload();}
  if(f.id==='new-venue'){
+ data.slug=String(data.slug||'').trim().toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-+|-+$/g,'').slice(0,60).replace(/-+$/g,'');
  if(data.slug==='demo')throw Error('Please choose another page name');
+ if(!/^[a-z0-9][a-z0-9-]{2,59}$/.test(data.slug))throw Error('Page name must be 3–60 characters using letters, numbers and hyphens.');
  for(const k of ['logo_url','cover_url','google_url','instagram_url'])if(data[k]&&!safeImage(data[k]))throw Error('Image and restaurant links must use HTTPS');
  if(f.wifi_enabled.checked&&!data.wifi_ssid.trim())throw Error('Enter the guest Wi-Fi network name.');
  const payload={...data,theme:themes[0].id,accent:themes[0].accent,reward_target:Number(data.reward_target),wifi_enabled:f.wifi_enabled.checked,loyalty_enabled:f.loyalty_enabled.checked,owner_id:user.id,menu:[]};
