@@ -5,6 +5,7 @@ import {resolve,extname} from 'node:path';
 import {chromium} from 'playwright';
 import {PNG} from 'pngjs';
 import jsQR from 'jsqr';
+import {MultiFormatReader,RGBLuminanceSource,HybridBinarizer,BinaryBitmap,DecodeHintType,BarcodeFormat} from '@zxing/library';
 
 const out=resolve('artifacts/qr-designs');await mkdir(out,{recursive:true});
 const root=resolve('site');
@@ -28,6 +29,13 @@ function decodeCard(png,kind){
  const panel=new Uint8ClampedArray(size*size*4);
  for(let row=0;row<size;row++)panel.set(png.data.subarray(((y+row)*png.width+x)*4,((y+row)*png.width+x+size)*4),row*size*4);
  return jsQR(panel,size,size,{inversionAttempts:'attemptBoth'});
+}
+function decodeStandalone(png){
+ const pixels=new Int32Array(png.width*png.height);
+ for(let i=0;i<pixels.length;i++){const p=i*4;pixels[i]=(png.data[p]<<16)|(png.data[p+1]<<8)|png.data[p+2];}
+ const reader=new MultiFormatReader();
+ reader.setHints(new Map([[DecodeHintType.POSSIBLE_FORMATS,[BarcodeFormat.QR_CODE]],[DecodeHintType.TRY_HARDER,true]]));
+ return reader.decode(new BinaryBitmap(new HybridBinarizer(new RGBLuminanceSource(pixels,png.width,png.height)))).getText();
 }
 const browser=await chromium.launch({headless:true});
 try{
@@ -90,7 +98,15 @@ try{
  await download.saveAs(out+'/downloaded-qr-only.png');
  const qrOnly=PNG.sync.read(await readFile(out+'/downloaded-qr-only.png'));
  assert.equal(qrOnly.width,1520);
- assert.equal(jsQR(new Uint8ClampedArray(qrOnly.data),qrOnly.width,qrOnly.height)?.data,origin+'/qr-designs/?sample=review');
+ assert.equal(decodeStandalone(qrOnly),origin+'/qr-designs/?sample=review');
+ // Retain the exact destination that exposed jsQR's high-resolution dot-pattern limitation.
+ const regressionURL='http://127.0.0.1:38959/qr-designs/?sample=review';
+ const regression=await page.evaluate(async url=>{
+  const raw=await new QRCodeStyling(QRDesigns.qrOptions({kind:'review',url},{theme:'onyx',pattern:'dots'})).getRawData('svg');
+  return Array.from(new Uint8Array(await (await QRDesigns.pngBlob(await raw.text(),1520)).arrayBuffer()));
+ },regressionURL);
+ assert.equal(decodeStandalone(PNG.sync.read(Buffer.from(regression))),regressionURL);
+ console.log('PASS: ZXing independently scans QR-only PNG downloads and the fixed dot-pattern regression destination.');
  const popupPromise=page.waitForEvent('popup');
  await page.locator('[data-card-export="print"]').click();
  const popup=await popupPromise;await popup.locator('body>svg').waitFor();
