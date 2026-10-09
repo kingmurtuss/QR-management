@@ -10,7 +10,8 @@
   },
   "scripts": {
     "test": "node --test",
-    "check": "node --check netlify/functions/qr-redirect.mjs && node --check netlify/functions/review-generate.mjs && node --check netlify/functions/review-reply.mjs && node --check site/app-reviews.js && node --check site/review.js && node --check netlify/functions/restaurant-api.mjs && node --check netlify/functions/restaurant-manage.mjs && node --check site/restaurants/app.js && node --check site/restaurants/themes.js && node --check site/appearance.js && node --check site/restaurants/reset/reset.js && node --check site/restaurants/reset/recovery.mjs"
+    "check": "node --check netlify/functions/qr-redirect.mjs && node --check netlify/functions/review-generate.mjs && node --check netlify/functions/review-reply.mjs && node --check site/app-reviews.js && node --check site/review.js && node --check netlify/functions/restaurant-api.mjs && node --check netlify/functions/restaurant-manage.mjs && node --check site/restaurants/app.js && node --check site/restaurants/themes.js && node --check site/appearance.js && node --check site/restaurants/reset/reset.js && node --check site/restaurants/reset/recovery.mjs && node --check site/qr-designs.js && node --check site/qr-designs/gallery.js && node --check site/app-actions-a.js && node --check site/restaurants/menu-themes.js && node --check netlify/functions/lib/restaurant-theme-access.mjs",
+    "check:qr-browser": "node scripts/check-qr-designs.mjs"
   },
   "devDependencies": {
     "@electric-sql/pglite": "0.5.8"

@@ -127,7 +127,7 @@ The app does not intentionally refresh when the browser tab becomes hidden/visib
 
 Open **QR Inventory -> Preview / Print**.
 
-The print card is a portrait PVC design with a layered midnight glass background, Google Review badge, five premium star tiles, high-error-correction QR, illuminated QR halo, "SCAN • RATE • DONE" CTA, permanent QR code identifier, optional business name, and a 54 x 85.6 mm print page.
+The card designer offers six professional themes and four QR patterns. Signature rounded preserves the established Google review QR artwork; the other patterns use standard corner markers for reliable scanning. Choose a theme, print a 54 × 85.6 mm PVC card, or download a complete 1800px PNG, a vector SVG, or a 1520px QR-only PNG. The same master card is used for preview, printing and downloads. Design preferences are stored for each QR in the current browser. Preview all designs at `/qr-designs/` (clearly labelled demo destinations).
 
 The QR itself contains only your dynamic `/qr/...` URL, so a business's Google Review URL can be edited later without reprinting the physical QR card.
 
@@ -152,3 +152,25 @@ Without provider credentials, the app clearly labels basic review drafts. It nev
 Interactive sample: `/review.html?demo=1`. The sample uses basic suggestions and never targets a real business. Live assistant: `/review.html?code=QR00001` for an active QR whose business has the add-on enabled. Opening that page directly does not add another scan; the `/qr/` resolver records the scan once.
 
 Verification: `npm ci`, `npm test`, `npm run check`. Server functions remain outside `site/`, so server keys and source are not published as static files.
+
+
+## Restaurant guest theme add-ons
+
+Open a restaurant → **Themes & style**. Four guest menu layouts are available:
+
+- **Daily Menu**: included default, clean photo header and category cards.
+- **Garden Cards**: paid theme add-on, sage photo gallery and two-column dish cards.
+- **Evening Edition**: paid theme add-on, editorial dining layout.
+- **Café Journal**: paid theme add-on, warm café typography and paper-style menu.
+
+Managers can preview any layout without changing the live page, and request a locked design with **Request add-on**. The request appears in **Tickets & services**. Admins use **Enable theme add-on** or **Disable theme add-on** on the restaurant's theme card; enabling access allows the manager to choose **Use design**. No payment is automatically charged.
+
+Access is per restaurant and design. Approval is a completed, RLS-protected restaurant add-on request with a reserved `guest-theme:<id>` service name. Existing request policies and triggers allow only an active administrator to approve or close it; managers and agents can submit only open requests. The public restaurant API checks completed approvals before serving a premium layout. A manually written locked theme ID, a revoked add-on, an unknown theme, or an unavailable approval lookup falls back to Daily Menu. Existing request and venue tables are reused; no new migration is needed.
+
+Menu images, prices, availability, diet labels, allergens, Wi-Fi, loyalty and honest Google review links are retained. Paid previews use the current restaurant's content in a sandboxed frame. Demo-only theme URLs such as `/restaurants/?venue=demo&theme=garden` preview sample layouts; theme query parameters do not override a live restaurant's access.
+
+Restaurant printed cards are separate from guest theme add-ons. Open **QR & table card** for six table-card designs, four patterns, A6 printing and PNG/SVG downloads. The existing restaurant QR destination is preserved. Agents after handover and read-only manager previews can print/export but cannot change card design preferences.
+
+## GitHub verification
+
+`npm run check` and `npm test` cover syntax, permissions, account isolation, permanent handover, commissions, tickets, QR card generation and guest theme access. The **QR design verification** GitHub Actions workflow additionally renders and decodes all 48 printed QR combinations, tests downloads and print sizing, and exercises theme preview → request → admin enable → manager use → admin disable, mobile menu navigation and search. Screenshots are uploaded as the `qr-design-proof` artifact.
