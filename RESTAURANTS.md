@@ -29,3 +29,9 @@ This is a browser product, without native App Clips, signed Apple/Google Wallet 
 Loyalty cards stay in the same browser/device; clearing storage loses access. Staff should match the full card ID before issuing stamps. Dashboard lists show the latest 1,000 members and feedback records; event analytics query the last 30 days, up to 10,000 records. Wi-Fi details are public when enabled: use a dedicated guest network.
 
 Do not reward Google reviews, filter access to public reviews by rating, or claim that a click confirms a posted review. Private feedback submissions and public reviews are separate.
+
+## Appearance and membership QR
+
+Both dashboards share `appearance.css` and `appearance.js`: frosted glass, copper accents, Outfit headings and Plus Jakarta Sans text. A floating light/dark toggle is available on sign-in, workspace and guest screens; its preference persists in this browser and synchronises across tabs on the same origin. The two apps retain independent data and business logic.
+
+A loyalty QR encodes the full member ID as plain text. It is not a web link and does not add stamps automatically. Staff match the ID in Loyalty members before stamping or redeeming. The guest page explains this beside one square code; canvas and image are no longer displayed together. QR codes retain a white background in either theme and in print.
