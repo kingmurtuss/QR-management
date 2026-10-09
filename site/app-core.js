@@ -8,6 +8,7 @@ let sb = null;
 let session = null;
 let profile = null;
 let settings = null;
+let reviewAiConfigured = false;
 let cache = {
   profiles: [], qrs: [], businesses: [], withdrawals: [], tickets: [], appointments: [], logs: []
 };
@@ -22,6 +23,7 @@ const ADMIN_NAV = [
   ['workers', '👥', 'Workers'],
   ['qrs', '▣', 'QR Inventory'],
   ['businesses', '🏪', 'Businesses'],
+  ['reviews', '✦', 'Review Assistant'],
   ['payouts', '₹', 'Payouts'],
   ['tickets', '🎫', 'Support Tickets'],
   ['appointments', '📅', 'Appointments'],
@@ -32,6 +34,7 @@ const WORKER_NAV = [
   ['onboard', '＋', 'Onboard Business'],
   ['qrs', '▣', 'My QR Cards'],
   ['businesses', '🏪', 'My Businesses'],
+  ['reviews', '✦', 'Review Assistant'],
   ['earnings', '₹', 'Earnings'],
   ['tickets', '🎫', 'Support'],
   ['appointments', '📅', 'Appointments']
@@ -141,6 +144,7 @@ async function init() {
   try {
     showBoot('Loading secure configuration…');
     const cfg = await loadPublicConfig();
+    reviewAiConfigured = cfg.reviewAiConfigured === true;
     sb = window.supabase.createClient(cfg.supabaseUrl, cfg.supabasePublishableKey, {
       auth: {
         persistSession: true,
@@ -323,6 +327,7 @@ function navigate(page, { restoreScroll = false, skipRemember = false } = {}) {
   const titles = {
     dashboard:['Dashboard','Overview of your field operations'], workers:['Workers','Accounts, roles and performance'],
     qrs:[isAdmin()?'QR Inventory':'My QR Cards','Permanent dynamic QR inventory'], businesses:[isAdmin()?'Businesses':'My Businesses','Onboarded business records'],
+    reviews:['Review Assistant','Optional AI review and reply tools'],
     payouts:['Payouts','Worker withdrawal requests'], tickets:['Support Tickets','Worker support and responses'],
     appointments:['Appointments','Sales and service follow-ups'], settings:['Settings','Company, commission and QR configuration'],
     onboard:['Onboard Business','Assign an available QR to a new client'], earnings:['Earnings','Commission and withdrawal history']
@@ -342,6 +347,7 @@ function renderPage() {
     else if (currentPage === 'workers') page.innerHTML = renderWorkers();
     else if (currentPage === 'qrs') page.innerHTML = renderQrs();
     else if (currentPage === 'businesses') page.innerHTML = renderBusinesses();
+    else if (currentPage === 'reviews') page.innerHTML = renderReviewAssistant();
     else if (currentPage === 'onboard') page.innerHTML = renderOnboard();
     else if (currentPage === 'earnings') page.innerHTML = renderEarnings();
     else if (currentPage === 'payouts') page.innerHTML = renderPayouts();
@@ -349,6 +355,7 @@ function renderPage() {
     else if (currentPage === 'appointments') page.innerHTML = renderAppointments();
     else if (currentPage === 'settings') page.innerHTML = renderSettings();
     wirePage();
+    if (currentPage === 'reviews') wireReviewAssistant();
   } catch (err) {
     console.error(err);
     page.innerHTML = `<div class="alert error">Could not render this page: ${esc(err.message)}</div>`;

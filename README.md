@@ -130,3 +130,25 @@ Open **QR Inventory -> Preview / Print**.
 The print card is a portrait PVC design with a layered midnight glass background, Google Review badge, five premium star tiles, high-error-correction QR, illuminated QR halo, "SCAN • RATE • DONE" CTA, permanent QR code identifier, optional business name, and a 54 x 85.6 mm print page.
 
 The QR itself contains only your dynamic `/qr/...` URL, so a business's Google Review URL can be edited later without reprinting the physical QR card.
+
+## Optional review assistant add-on
+
+The **Review Assistant** sidebar page lets admins enable the add-on per business and choose English, Hindi, or Telugu. Existing physical `/qr/QRxxxxx` cards then redirect to the customer assistant; businesses with the add-on off keep their original direct Google Review redirect.
+
+Apply `supabase/migrations/20261009043909_review_assistant_addon.sql` once to an existing installation, after the base schema. It adds two RLS-protected tables. The migration does not enable the add-on for any business. Workers can view settings and generate/read replies only for their explicitly assigned businesses, with active admin access to all businesses. These checks also remain effective if base business visibility later broadens. Only admins can change add-on settings.
+
+Customer flow: scan the activated business QR, tap an overall rating and 1–3 things that actually happened, then tap **Generate Review**. AI writes a natural, conversational review using only these selected facts and preserving the rating, including criticism and mixed experiences. No typing or confirmation checkbox is required, and no rating or fact is selected by default. The text is copied before redirecting to the business's Google Review page; the customer checks/edits it, pastes, sets their rating on Google and submits. All ratings use the same destination. If the browser denies asynchronous clipboard permission, the generated text stays visible with a **Copy & open Google** button and a manual-copy fallback. Repeated generations vary the phrasing and sentence order while avoiding the last eight drafts in the current browser tab, including after a refresh. Live AI receives those drafts only as wording to avoid; it retries once if it repeats a draft, then uses a fresh explicitly labelled basic draft if necessary. This bounded history is kept in session storage with an in-memory fallback, scoped to the business and never saved to Supabase. The demo uses explicitly labelled varied basic drafts in the chosen language and does not redirect to a real business. No reviews are submitted or verified automatically. Customer ratings, choices and generated review text are not stored in Supabase.
+
+Reply flow: paste a real Google review into the dashboard, generate three replies, edit and copy a reply, then publish it from the business's Google Business Profile. Original review text and the three initial reply drafts are saved in `review_reply_drafts`. These records remain private to assigned active accounts and admins. Edits made after generation are not automatically saved. There is no Google review synchronization or automated reply posting; those require an authorized Google Business Profile API integration.
+
+### AI provider
+
+The three server functions use the official OpenAI SDK. On eligible credit-based Netlify plans, Netlify AI Gateway injects provider credentials. Otherwise set **OPENAI_API_KEY** in the Netlify project's Functions environment. Never put it in the browser or a tracked file. Optional `REVIEW_AI_MODEL` defaults to `gpt-4.1-mini` (verified in Netlify's provider catalog); configure a supported Chat Completions model with JSON mode.
+
+AI calls consume provider tokens / Netlify AI credits. Requests are limited to six per minute per IP+domain per generation function. Input text is bounded, each generation produces three short drafts, SDK retries are disabled, and the request timeout is 22 seconds. Enable the add-on only for the businesses you want to use this feature.
+
+Without provider credentials, the app clearly labels basic review drafts. It never represents these templates as AI. A configured provider failing returns an actionable error, while the customer can still go directly to Google.
+
+Interactive sample: `/review.html?demo=1`. The sample uses basic suggestions and never targets a real business. Live assistant: `/review.html?code=QR00001` for an active QR whose business has the add-on enabled. Opening that page directly does not add another scan; the `/qr/` resolver records the scan once.
+
+Verification: `npm ci`, `npm test`, `npm run check`. Server functions remain outside `site/`, so server keys and source are not published as static files.
