@@ -44,3 +44,6 @@
   .qr-portal{width:228px;height:228px}
   .premium-qr-box{width:178px;height:178px}
 }
+
+/* Responsive hardening — QR management, modals and review cards */
+@media(max-width:700px){.modal{max-width:calc(100vw - 16px);max-height:calc(100dvh - 16px);overflow:auto}.modal-card{padding:20px 14px}.review-card{transform:none;margin:0 auto;max-width:100%}.review-card-preview{padding:12px;overflow:hidden}.qr-portal{width:min(228px,78vw);height:min(228px,78vw)}.premium-qr-box{width:calc(100% - 50px);height:calc(100% - 50px)}.qr-bulk-tools,.select-unused{min-width:0}.location-box{align-items:flex-start;flex-wrap:wrap}.location-box code{width:100%}}
