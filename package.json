@@ -2,5 +2,17 @@
   "name": "qr-field-ops",
   "version": "1.0.0",
   "private": true,
-  "engines": { "node": ">=22" }
+  "engines": {
+    "node": ">=22"
+  },
+  "dependencies": {
+    "openai": "7.31.0"
+  },
+  "scripts": {
+    "test": "node --test",
+    "check": "node --check netlify/functions/qr-redirect.mjs && node --check netlify/functions/review-generate.mjs && node --check netlify/functions/review-reply.mjs && node --check site/app-reviews.js && node --check site/review.js"
+  },
+  "devDependencies": {
+    "@electric-sql/pglite": "0.5.8"
+  }
 }

@@ -1,0 +1,44 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="robots" content="noindex,nofollow"><meta name="theme-color" content="#125e4d">
+  <title>Share your experience · QR Field Ops</title>
+  <link rel="icon" href="/assets/favicon.svg"><link rel="stylesheet" href="/review.css">
+  <script src="/review.js" defer></script>
+</head>
+<body>
+  <header class="review-header"><a class="brand" href="/review.html?demo=1"><span class="brand-icon" aria-hidden="true">▦</span> QR Field Ops<span class="brand-tag">Review assistant</span></a><span class="secure-label">Your words. Your experience.</span></header>
+  <main class="review-layout">
+    <section class="review-intro">
+      <div class="eyebrow"><span></span> A little feedback goes a long way</div>
+      <div class="business-mark" id="business-mark" aria-hidden="true">▦</div>
+      <p class="business-label">Your visit to</p><h1 id="business-name">Loading business…</h1>
+      <p class="intro-copy">You had the experience.<br>We’ll help you find the words.</p>
+      <div class="intro-line"></div>
+      <ol class="steps"><li class="step active" id="step-one"><b>01</b><span>Tell us about your visit<small>A few honest details are enough</small></span></li><li class="step" id="step-two"><b>02</b><span>Make it your own<small>Choose and edit a suggestion</small></span></li><li class="step" id="step-three"><b>03</b><span>Share on Google<small>You decide what to post</small></span></li></ol>
+      <div class="honesty-note"><span aria-hidden="true">♡</span> Every experience matters — good, mixed, or disappointing.</div>
+    </section>
+    <section class="review-panel" aria-label="Review assistant">
+      <div id="demo-banner" class="notice" hidden>Interactive preview · Sample business · Suggestions use your own words.</div>
+      <div id="page-error" class="notice error" role="alert" hidden></div>
+      <form id="experience-form" class="experience-form">
+        <div class="panel-top"><span class="section-number">01 / YOUR EXPERIENCE</span><label class="language">Language<select id="review-language"><option>English</option><option>Hindi</option><option>Telugu</option></select></label></div>
+        <h2>How was your visit?</h2><p class="sub-copy">Start with a rating that reflects your experience.</p>
+        <fieldset class="rating-field"><legend class="sr-only">Choose your rating</legend><div class="star-row" id="star-row"></div></fieldset><p class="rating-caption" id="rating-caption">Choose from 1 to 5 stars</p>
+        <label class="experience-label" for="experience">What would you like to share?</label><textarea id="experience" minlength="10" maxlength="1500" required placeholder="What did you try? How was the service? Was there anything that could be better?"></textarea><div class="text-helper"><span>Only include things you personally experienced.</span><span id="char-count">0 / 1500</span></div>
+        <label class="honest-check"><input type="checkbox" id="honest-check" required><span>This reflects my own visit and honest opinion.</span></label>
+        <button class="generate-btn" id="generate-btn" type="submit" disabled><span aria-hidden="true">✦</span> Help me write my review <span aria-hidden="true">→</span></button>
+        <p class="privacy-copy">Your notes are used to prepare suggestions. You review and edit everything before posting.</p>
+      </form>
+      <section id="draft-section" hidden>
+        <div class="panel-top"><span class="section-number">02 / MAKE IT YOUR OWN</span><button class="text-btn" id="back-btn">← Edit my experience</button></div><h2>A starting point, in your voice.</h2><p class="sub-copy" id="draft-source"></p><div class="draft-options" id="draft-options"></div>
+        <label class="experience-label" for="final-review">Your review · fully editable</label><textarea id="final-review" maxlength="3000"></textarea><p class="privacy-copy">Check that every detail is true to your visit. You can rewrite any part.</p>
+        <button class="generate-btn" id="copy-btn">Copy my review <span aria-hidden="true">↗</span></button><p id="copy-status" class="copy-status" role="status"></p>
+        <a class="google-button" id="post-google" href="#" target="_blank" rel="noopener noreferrer" hidden>Open Google & paste your review ↗</a><p class="privacy-copy" id="post-note" hidden>Paste the text, select your rating, and submit on Google. Nothing is posted automatically.</p>
+      </section>
+      <div class="direct-link"><span>Prefer to write it yourself?</span><a id="direct-google" href="#" target="_blank" rel="noopener noreferrer" hidden>Go straight to Google ↗</a></div>
+    </section>
+  </main>
+  <footer class="review-footer"><span>Thoughtful feedback. Better experiences.</span><span>Powered by QR Field Ops</span></footer>
+</body></html>
