@@ -95,7 +95,9 @@ try{
  await page.locator('[data-card-export="print"]').click();
  const popup=await popupPromise;await popup.locator('body>svg').waitFor();
  assert.ok((await popup.locator('style').innerText()).includes('@page{size:54mm 85.6mm;margin:0}'));
- assert.equal(await popup.locator('body>svg>svg').evaluate(el=>getComputedStyle(el).width),'570px','Print CSS must not resize the nested QR.');
+ const printBounds=await popup.locator('body>svg').evaluate(el=>{const outer=el.getBoundingClientRect(),inner=el.querySelector('svg').getBoundingClientRect();return {width:outer.width,qrWidth:inner.width,qrHeight:inner.height};});
+ assert.ok(Math.abs(printBounds.qrWidth/printBounds.width-570/900)<.002,'Print CSS must preserve the nested QR width.');
+ assert.ok(Math.abs(printBounds.qrWidth-printBounds.qrHeight)<.2,'The printed QR must remain square.');
  await popup.close();
  await page.reload();await page.locator('[data-card-preview][data-ready="true"]').waitFor();
  assert.equal(await page.locator('[data-card-theme="onyx"]').getAttribute('aria-pressed'),'true');
@@ -161,6 +163,7 @@ try{
  await page.locator('[data-theme-access="garden"][data-enabled="false"]').waitFor();
  assert.equal(await page.locator('[data-theme-access="cafe"]').getAttribute('data-enabled'),'true');
  await page.screenshot({path:out+'/admin-theme-access.png',fullPage:true});
+ console.log('GUEST_ADMIN_VISUAL:'+(await page.screenshot({type:'jpeg',quality:55,fullPage:true})).toString('base64'));
  await page.goto(origin+'/restaurants/?manager-demo=1');await page.locator('[data-nav="themes"]').click();
  await page.locator('[data-theme-choice="garden"]').click();await page.waitForFunction(()=>selected.theme==='garden');
  assert.equal(await page.locator('[data-theme-choice="cafe"]').count(),0);
@@ -175,6 +178,7 @@ try{
   await page.locator('#category-search').fill('cappuccino');assert.equal(await page.locator('.menu-category-card:visible').count(),1);await page.locator('#category-search').fill('');
   await page.setViewportSize({width:390,height:844});assert.ok(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),'Guest layout overflows: '+theme);
   await page.screenshot({path:out+'/guest-'+theme+'-mobile.png',fullPage:true});
+ console.log('GUEST_THEME_VISUAL_'+theme+':'+(await page.screenshot({type:'jpeg',quality:55,fullPage:true})).toString('base64'));
   await page.locator('[data-category="Mains"]').click();assert.equal(await page.locator('.menu-item').count(),2);assert.ok((await page.locator('#menu-items').innerText()).includes('490'));
   await page.locator('#menu-search').fill('pasta');assert.equal(await page.locator('.menu-item:visible').count(),1);await page.locator('#menu-search').fill('');
   await page.screenshot({path:out+'/menu-'+theme+'-mobile.png',fullPage:true});await page.setViewportSize({width:1440,height:1100});
