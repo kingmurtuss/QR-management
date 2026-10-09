@@ -1,0 +1,58 @@
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import {readFile} from 'node:fs/promises';
+import {PGlite} from '@electric-sql/pglite';
+const [agent,other,admin,manager,otherManager]=Array.from({length:5},(_,i)=>`00000000-0000-4000-8000-00000000000${i+1}`);
+const [venue,second]=['10000000-0000-4000-8000-000000000001','10000000-0000-4000-8000-000000000002'];
+test('permanent handover, one rate snapshot, request isolation and provisioning permissions',async()=>{
+ const db=new PGlite();
+ try{
+  await db.exec(`create role anon;create role authenticated;create role service_role bypassrls;create schema auth;create schema private;create schema storage;
+  create function auth.uid() returns uuid language sql stable as $$select nullif(current_setting('request.jwt.claim.sub',true),'')::uuid$$;
+  create table auth.users(id uuid primary key,raw_app_meta_data jsonb default '{}');
+  create table public.profiles(id uuid primary key,role text,name text,email text,active boolean);
+  create function private.is_admin(p_user uuid default auth.uid()) returns boolean language sql stable security definer set search_path='' as $$select exists(select 1 from public.profiles where id=p_user and role='admin' and active)$$;
+  create function private.protect_profile_security() returns trigger language plpgsql set search_path='' as $$begin if auth.uid() is not null and not private.is_admin() then new.role=old.role;new.active=old.active;new.email=old.email;end if;return new;end$$;
+  create trigger protect_profile_security before update on public.profiles for each row execute function private.protect_profile_security();
+  create table storage.buckets(id text primary key,name text,public boolean,file_size_limit bigint,allowed_mime_types text[]);
+  create table storage.objects(id bigint generated always as identity,bucket_id text,name text);alter table storage.objects enable row level security;
+  grant usage on schema auth,public,storage to authenticated,anon,service_role;grant usage on schema private to authenticated;
+  grant select on public.profiles to authenticated;grant all on public.profiles to service_role;
+  alter table public.profiles enable row level security;create policy profile_read on public.profiles for select to authenticated using(id=auth.uid() or private.is_admin());
+  insert into auth.users(id) values('${agent}'),('${other}'),('${admin}'),('${manager}'),('${otherManager}');
+  insert into public.profiles values('${agent}','worker','Agent','agent@example.invalid',true),('${other}','worker','Other','other@example.invalid',true),('${admin}','admin','Admin','admin@example.invalid',true),('${manager}','worker','Manager','manager@example.invalid',false),('${otherManager}','worker','Other Manager','mgr2@example.invalid',false);`);
+  for(const path of ['../restaurant_setup.sql','../supabase/migrations/20261009063719_restaurant_manager_control.sql','../supabase/migrations/20261009085503_restaurant_operations.sql'])await db.exec(await readFile(new URL(path,import.meta.url),'utf8'));
+  await db.exec(`insert into public.restaurant_venues(id,owner_id,created_by,name,slug,published,menu) values('${venue}','${agent}','${agent}','Venue','venue',true,'[{"name":"Dish","price":20}]'),('${second}','${other}','${other}','Second','second',true,'[{"name":"Dish","price":20}]');
+   insert into public.restaurant_manager_access(venue_id,user_id,name,email) values('${venue}','${manager}','Manager','manager@example.invalid'),('${second}','${otherManager}','Other','mgr2@example.invalid');`);
+  const as=async(id,role='authenticated')=>db.exec(`reset role;set request.jwt.claim.sub='${id}';set role ${role};`);
+  const count=async(table)=>Number((await db.query(`select count(*) n from public.${table}`)).rows[0].n);
+  await as('', 'service_role');await db.exec(`update public.profiles set name=name where id='${manager}'`); // Actual provisioning regression.
+  await as(admin);await db.exec("update public.restaurant_commission_settings set amount=450,currency='INR'");
+  await as(agent);assert.equal((await db.query('update public.restaurant_commission_settings set amount=999 returning id')).rows.length,0);
+  await db.exec(`insert into public.restaurant_requests(venue_id,kind,subject,message) values('${venue}','ticket','Setup help','Help with photos')`);
+  await assert.rejects(db.exec(`insert into public.restaurant_requests(venue_id,kind,subject,message) values('${second}','ticket','Wrong venue','Cannot access')`),/row-level security/);
+  await as('', 'service_role');await db.exec(`update public.restaurant_venues set handed_over_at=now(),handed_over_by='${agent}',agent_support=false where id='${venue}'`);
+  let ledger=(await db.query('select * from public.restaurant_commissions')).rows;assert.equal(ledger.length,1);assert.equal(Number(ledger[0].amount),450);assert.equal(ledger[0].agent_id,agent);assert.equal(ledger[0].status,'pending');
+  await db.exec(`update public.restaurant_venues set agent_support=true where id='${venue}'`);assert.equal((await db.query(`select agent_support from public.restaurant_venues where id='${venue}'`)).rows[0].agent_support,false);
+  await assert.rejects(db.exec(`update public.restaurant_venues set handed_over_at=null where id='${venue}'`),/Handover is permanent/);
+  await as(agent);assert.equal((await db.query(`update public.restaurant_venues set name='Blocked' where id='${venue}' returning id`)).rows.length,0);
+  await assert.rejects(db.exec(`insert into public.restaurant_requests(venue_id,kind,subject,message) values('${venue}','service','After handover','Agent may not manage')`),/row-level security/);
+  assert.equal(await count('restaurant_requests'),1);assert.equal(await count('restaurant_commissions'),1);
+  await as(manager);assert.equal(await count('restaurant_commissions'),0);assert.equal((await db.query(`update public.restaurant_venues set theme='garden' where id='${venue}' returning id`)).rows.length,1);
+  await db.exec(`insert into public.restaurant_requests(venue_id,kind,subject,message,service_name) values('${venue}','addon','Photography','New dish images','Menu photography')`);
+  assert.equal((await db.query("update public.restaurant_requests set status='completed' returning id")).rows.length,0);
+  await assert.rejects(db.exec(`insert into public.restaurant_requests(venue_id,kind,subject,message) values('${second}','ticket','Wrong restaurant','Blocked')`),/row-level security/);
+  await as(otherManager);assert.equal(await count('restaurant_requests'),0);
+  await as(admin);assert.equal(await count('restaurant_requests'),2);await db.exec("update public.restaurant_requests set status='quoted',admin_reply='We can arrange this',quote_amount=1200 where kind='addon'");
+  await db.exec("update public.restaurant_commission_settings set amount=700");await db.exec(`update public.restaurant_commissions set status='approved' where venue_id='${venue}'`);await db.exec(`update public.restaurant_commissions set status='paid' where venue_id='${venue}'`);
+  await as('', 'service_role');await db.exec(`update public.restaurant_venues set name='Manager update' where id='${venue}'`);
+  ledger=(await db.query('select * from public.restaurant_commissions')).rows;assert.equal(ledger.length,1);assert.equal(Number(ledger[0].amount),450);assert.ok(ledger[0].paid_at);
+  await db.exec(`update public.restaurant_venues set handed_over_at=now(),handed_over_by='${other}' where id='${second}'`);
+  assert.equal(Number((await db.query(`select amount from public.restaurant_commissions where venue_id='${second}'`)).rows[0].amount),700);
+  await db.exec(`update public.restaurant_venues set suspended=true where id='${venue}'`);
+  await as(manager);assert.equal((await db.query(`update public.restaurant_venues set name='Paused edit' where id='${venue}' returning id`)).rows.length,0);
+  await db.exec(`insert into public.restaurant_requests(venue_id,kind,subject,message) values('${venue}','ticket','Paused','Please restore access')`);
+  const quote=(await db.query("select admin_reply,quote_amount from public.restaurant_requests where kind='addon'")).rows[0];assert.equal(quote.admin_reply,'We can arrange this');assert.equal(Number(quote.quote_amount),1200);
+  await as('', 'anon');for(const table of ['restaurant_requests','restaurant_commission_settings'])await assert.rejects(db.query(`select * from public.${table}`),/permission denied/);
+ }finally{await db.close();}
+});
