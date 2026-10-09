@@ -216,3 +216,7 @@
  :root .restaurant-app[data-guest-theme] .guest-cover .cover-note .eyebrow{color:inherit}
 }
 :root .restaurant-app[data-guest-theme] #appearance-toggle{top:12px;bottom:auto;right:12px;padding:8px 11px;min-height:37px;background:color-mix(in srgb,var(--menu-paper) 85%,transparent);backdrop-filter:blur(18px);color:var(--menu-ink);border-color:var(--menu-line);font-size:9px}
+
+:root .restaurant-app[data-guest-theme=heritage] .guest-cover .cover-note{right:48%;z-index:2}
+:root .restaurant-app[data-guest-theme=garden] .guest-cover .cover-note>.eyebrow{color:#331358;background:#d7fb65}
+:root .restaurant-app[data-guest-theme=coastal] .guest-cover .cover-note{right:43%;z-index:2}
