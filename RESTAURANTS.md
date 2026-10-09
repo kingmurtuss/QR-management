@@ -36,3 +36,11 @@ Labelled demo routes `?agent-demo=1`, `?admin-demo=1`, `?manager-demo=1` store d
 ## Limits
 
 Browser loyalty stays on the original device. Guest/member analytics list recent bounded records, while setup attribution counts paginate all venues. This app does not collect orders or payments, supply native wallet passes, scan menus with AI, or send marketing messages. Manager email/password creation does not send email; agents share credentials securely and managers update their initial password after onboarding.
+
+## Manager administration and recovery
+
+- Admins can edit manager names and login emails from Manager & handover. To replace a person, disable access and create a separate manager account. Assignment is verified by the server before any account change.
+- Reset password creates a Supabase recovery token for the currently assigned, active manager. The private link must be shared securely by the admin; no email is sent automatically and no password is returned.
+- The recovery token stays in the URL fragment and is removed before API calls. Recovery uses an isolated, non-persistent session, so opening a manager link cannot overwrite an administrator’s normal QR login. New passwords require 12–128 characters, matching confirmation, and global refresh-session sign-out after success.
+- View manager dashboard opens an authenticated read-only view of the selected restaurant using the existing admin session. It does not impersonate the manager. The public manager demo is separately labelled and never writes live data.
+- Guest glass cards include soft arrival and ambient drift animations across all six themes. Reduced-motion preferences disable animations; browsers without backdrop-filter use opaque readable surfaces.
