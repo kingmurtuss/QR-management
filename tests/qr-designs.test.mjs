@@ -58,3 +58,12 @@ test('handed-over cards show read-only design controls and retain export actions
  assert.ok(html.includes('data-card-export="print"'));
  assert.ok(/data-card-theme="garden"[^>]*disabled/.test(html));
 });
+
+test('Google review cards have distinct Google identity and prominent provider branding',()=>{
+ for(const theme of studio.themes('review')){
+  const svg=studio.cardSVG({kind:'review',name:'Our business',company:'YAM IT SERVICES'},raw,{theme:theme.id});
+  assert.ok(svg.includes('Review us on Google'));assert.ok(svg.includes('aria-label="Google"'));
+  assert.ok(svg.includes('POWERED BY'));assert.ok(svg.includes('YAM IT SERVICES'));
+  assert.ok(svg.includes('font-size="34"'));assert.ok(!svg.includes('Welcome to our table'));
+ }
+});

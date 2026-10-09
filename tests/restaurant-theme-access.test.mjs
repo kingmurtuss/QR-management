@@ -8,10 +8,10 @@ const guest=require('../site/restaurants/menu-themes.js');
 const venue='11111111-1111-4111-8111-111111111111';
 const approved={venue_id:venue,kind:'addon',status:'completed',service_name:'guest-theme:garden'};
 
-test('one default design is free and three guest designs are add-ons',()=>{
+test('one default design is free and five premium guest designs are add-ons',()=>{
  assert.deepEqual(guest.themes.map(t=>t.id),GUEST_THEMES);
  assert.equal(guest.themes.filter(t=>!t.premium).length,1);
- assert.equal(guest.themes.filter(t=>t.premium).length,3);
+ assert.equal(guest.themes.filter(t=>t.premium).length,5);
  assert.deepEqual(guestThemeAccess([],venue),['glass-bistro']);
 });
 test('only a completed, correctly scoped theme add-on unlocks a design',()=>{
@@ -62,5 +62,24 @@ test('public restaurant API ignores a tampered paid theme until its add-on is ap
   globalThis.fetch=oldFetch;
   if(oldURL===undefined)delete process.env.SUPABASE_URL;else process.env.SUPABASE_URL=oldURL;
   if(oldKey===undefined)delete process.env.SUPABASE_SERVICE_ROLE_KEY;else process.env.SUPABASE_SERVICE_ROLE_KEY=oldKey;
+ }
+});
+
+test('each premium layout requires its own restaurant-scoped approval',()=>{
+ for(const theme of guest.themes.filter(t=>t.premium)){
+  const row={...approved,service_name:'guest-theme:'+theme.id};
+  assert.deepEqual(guestThemeAccess([row],venue),['glass-bistro',theme.id]);
+  assert.equal(publishedGuestTheme(theme.id,guest.access([],venue)),'glass-bistro');
+  assert.equal(publishedGuestTheme(theme.id,guest.access([row],venue)),theme.id);
+ }
+});
+test('premium experiences use original branding and retain uploaded dish photography',()=>{
+ const v={name:'Our Restaurant',theme:'heritage',menu:[{name:'Pasta',category:'Mains',price:490,image:'https://example.com/pasta.webp'}]};
+ for(const t of guest.themes){
+  const html=guest.previewDocument(v,t.id);
+  assert.ok(html.includes('https://example.com/pasta.webp'));
+  assert.ok(html.includes('YAM IT SERVICES'));
+  assert.ok(html.includes(t.headline));
+  assert.ok(!/Swiggy|Zepto|Zomato/.test(html));
  }
 });

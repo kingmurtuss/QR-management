@@ -146,9 +146,9 @@ try{
  await page.evaluate(()=>localStorage.removeItem('yam-demo-theme-requests:v1'));
  await page.goto(origin+'/restaurants/?manager-demo=1');
  await page.locator('[data-nav="themes"]').click();
- assert.equal(await page.locator('[data-theme-preview]').count(),4);
+ assert.equal(await page.locator('[data-theme-preview]').count(),6);
  assert.equal(await page.locator('[data-theme-choice="garden"]').count(),0);
- assert.equal(await page.locator('[data-theme-request]').count(),3);
+ assert.equal(await page.locator('[data-theme-request]').count(),5);
  await page.locator('[data-theme-preview="garden"]').click();
  await page.frameLocator('#dialog iframe').locator('body[data-guest-theme="garden"]').waitFor();
  assert.equal(await page.evaluate(()=>selected.theme),'glass-bistro');
@@ -172,18 +172,18 @@ try{
  await page.locator('[data-theme-access="garden"][data-enabled="false"]').click();await page.locator('[data-theme-access="garden"][data-enabled="true"]').waitFor();
  await page.goto(origin+'/restaurants/?manager-demo=1');await page.locator('[data-nav="themes"]').click();
  assert.equal(await page.locator('[data-theme-choice="garden"]').count(),0);assert.equal(await page.locator('[data-theme-choice="glass-bistro"]').count(),1);
- for(const theme of ['glass-bistro','garden','midnight','cafe']){
+ for(const theme of ['glass-bistro','heritage','garden','coastal','midnight','cafe']){
   await page.goto(origin+'/restaurants/?venue=demo&theme='+theme);await page.locator('body[data-guest-theme="'+theme+'"]').waitFor();
-  await page.locator('.menu-category-card').first().waitFor();assert.equal(await page.locator('.menu-category-card').count(),3);
+  await page.locator('.menu-category-card').first().waitFor();assert.equal(await page.locator('.menu-category-card').count(),3);assert.ok((await page.locator('.provider-brand').innerText()).includes('YAM IT SERVICES'));
   await page.locator('#category-search').fill('cappuccino');assert.equal(await page.locator('.menu-category-card:visible').count(),1);await page.locator('#category-search').fill('');
   await page.setViewportSize({width:390,height:844});assert.ok(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),'Guest layout overflows: '+theme);
   await page.screenshot({path:out+'/guest-'+theme+'-mobile.png',fullPage:true});
  console.log('GUEST_THEME_VISUAL_'+theme+':'+(await page.screenshot({type:'jpeg',quality:55,fullPage:true})).toString('base64'));
   await page.locator('[data-category="Mains"]').click();assert.equal(await page.locator('.menu-item').count(),2);assert.ok((await page.locator('#menu-items').innerText()).includes('490'));
   await page.locator('#menu-search').fill('pasta');assert.equal(await page.locator('.menu-item:visible').count(),1);await page.locator('#menu-search').fill('');
-  await page.screenshot({path:out+'/menu-'+theme+'-mobile.png',fullPage:true});await page.setViewportSize({width:1440,height:1100});
+  await page.screenshot({path:out+'/menu-'+theme+'-mobile.png',fullPage:true});console.log('GUEST_MENU_VISUAL_'+theme+':'+(await page.screenshot({type:'jpeg',quality:60,fullPage:true})).toString('base64'));await page.setViewportSize({width:1440,height:1100});
  }
- console.log('PASS: four guest layouts, locked previews, add-on requests, admin activation/revocation, manager selection, category navigation, search and mobile layouts.');
+ console.log('PASS: six guest layouts, locked previews, add-on requests, admin activation/revocation, manager selection, category navigation, search and mobile layouts.');
  // Existing Google review modal integrates the designer with an assigned business.
  await page.goto(origin+'/');
  await page.waitForFunction(()=>typeof previewQr==='function');
@@ -198,6 +198,6 @@ try{
  await page.locator('#review-qr-designer [data-card-theme="ivory"]').click();
  await page.waitForFunction(()=>document.querySelector('#review-qr-designer svg title')?.textContent.includes('Ivory'));
  assert.equal(await page.locator('#modal').evaluate(el=>el.open),true,'Theme selection must not close the review modal.');
- await page.screenshot({path:out+'/review-dashboard-modal.png',fullPage:true});
+ assert.equal(await page.locator('#review-qr-designer svg[data-company-name="Field Ops"]').count(),1);await page.screenshot({path:out+'/review-dashboard-modal.png',fullPage:true});
  console.log('PASS: gallery selection, preference persistence, PNG/SVG downloads, mobile layout, manager integration, read-only controls and long QR destinations.');
 }finally{await browser.close();await new Promise(r=>server.close(r));}

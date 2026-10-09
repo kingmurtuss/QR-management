@@ -3,11 +3,11 @@
 'use strict';
 const themes={
  review:[
- {id:'blue-glass',name:'Blue Glass',detail:'Cool blue · modern panel',bg:'#edf5ff',ink:'#17304f',muted:'#526e8a',accent:'#427aad',line:'#bfd0e1',layout:'glass',font:'Arial, sans-serif',qrInk:'#16364d'},
+ {id:'blue-glass',name:'Google Blue Glass',detail:'Google colours · blue glass',bg:'#edf5ff',ink:'#17304f',muted:'#526e8a',accent:'#427aad',line:'#bfd0e1',layout:'glass',font:'Arial, sans-serif',qrInk:'#16364d'},
  {id:'navy',name:'Signature Navy',detail:'Deep navy · clean typography',bg:'#10243e',ink:'#f1f6ff',muted:'#b9ccdf',accent:'#a8c9ec',line:'#405b77',layout:'center',font:'Arial, sans-serif',qrInk:'#10243e'},
- {id:'platinum',name:'Platinum',detail:'Silver white · contrast header',bg:'#f5f7fa',ink:'#233245',muted:'#647486',accent:'#415972',line:'#d0d7e0',layout:'band',font:'Arial, sans-serif',qrInk:'#233245'},
- {id:'ivory',name:'Ivory Editorial',detail:'Warm ivory · elegant serif',bg:'#faf6ee',ink:'#353126',muted:'#7a715f',accent:'#8f7551',line:'#d8cbb6',layout:'editorial',font:'Georgia, serif',qrInk:'#353126'},
- {id:'minimal',name:'Pure White',detail:'White space · precise details',bg:'#ffffff',ink:'#192b3f',muted:'#637488',accent:'#335678',line:'#d8e0e8',layout:'minimal',font:'Arial, sans-serif',qrInk:'#192b3f'},
+ {id:'platinum',name:'Google Platinum',detail:'Google identity · silver white',bg:'#f5f7fa',ink:'#233245',muted:'#647486',accent:'#415972',line:'#d0d7e0',layout:'band',font:'Arial, sans-serif',qrInk:'#233245'},
+ {id:'ivory',name:'Ivory Professional',detail:'Google reviews · warm neutral',bg:'#faf6ee',ink:'#353126',muted:'#7a715f',accent:'#8f7551',line:'#d8cbb6',layout:'editorial',font:'Georgia, serif',qrInk:'#353126'},
+ {id:'minimal',name:'Google White',detail:'Google colours · crisp white',bg:'#ffffff',ink:'#192b3f',muted:'#637488',accent:'#335678',line:'#d8e0e8',layout:'minimal',font:'Arial, sans-serif',qrInk:'#192b3f'},
  {id:'onyx',name:'Onyx & Gold',detail:'Charcoal · fine gold border',bg:'#191c21',ink:'#f4ead6',muted:'#c2b69e',accent:'#cfb475',line:'#786a49',layout:'frame',font:'Georgia, serif',qrInk:'#191c21'}
  ],
  restaurant:[
@@ -60,7 +60,33 @@ function wrapText(value,width,size,maxLines=3){
 function textLines(lines,x,y,size,color,font,anchor='middle',weightValue=400,gap=1.22){
  return lines.map((line,i)=>'<text x="'+x+'" y="'+(y+i*size*gap)+'" fill="'+color+'" font-family="'+xml(font)+'" font-size="'+size+'" font-weight="'+weightValue+'" text-anchor="'+anchor+'">'+xml(line)+'</text>').join('');
 }
+
+function reviewCardSVG(config,qrSVG,prefs){
+ const t=themeFor(config,prefs),name=String(config.name||'Your business'),company=String(config.company||'YAM IT SERVICES'),id=String(config.code||config.id||'').slice(0,36);
+ const embedded=String(qrSVG).replace(/<\?xml[\s\S]*?\?>/g,'').replace(/<!DOCTYPE[^>]*>/g,'').replace(/<svg\b[^>]*>/,'<svg x="165" y="645" width="570" height="570" viewBox="0 0 760 760" xmlns="http://www.w3.org/2000/svg">');
+ if(!embedded.includes('<svg '))throw Error('The QR could not be rendered. Please try again.');
+ const nameLines=wrapText(name,744,48,2);
+ const google='<g aria-label="Google" font-family="Arial,sans-serif" font-size="65" font-weight="600">'+[['G',251,'#4285f4'],['o',303,'#ea4335'],['o',344,'#fbbc05'],['g',385,'#4285f4'],['l',427,'#34a853'],['e',444,'#ea4335']].map(([c,x,color])=>'<text x="'+x+'" y="142" fill="'+color+'">'+c+'</text>').join('')+'<text x="496" y="142" fill="'+t.ink+'" font-size="45" font-weight="400">reviews</text></g>';
+ const stars=Array.from({length:5},(_,i)=>'<path transform="translate('+(321+i*57)+' 421) scale(1.7)" d="M12 2l3.1 6.3 6.9 1-5 4.9 1.2 6.9L12 17.8l-6.2 3.3 1.2-6.9-5-4.9 6.9-1z" fill="none" stroke="#e9b837" stroke-width="1.4"/>').join('');
+ const backdrop=t.layout==='frame'?'<rect x="28" y="28" width="844" height="1371" rx="24" fill="none" stroke="'+t.accent+'" stroke-width="2"/>':t.layout==='glass'?'<path d="M0 0H900V330L0 580Z" fill="#4285f4" opacity=".06"/><circle cx="850" cy="200" r="180" fill="#4285f4" opacity=".05"/>':t.layout==='band'?'<rect x="0" y="0" width="900" height="190" fill="#4285f4" opacity=".05"/>':'';
+ return '<svg xmlns="http://www.w3.org/2000/svg" width="900" height="1427" viewBox="0 0 900 1427" role="img" aria-label="'+xml(name+' GOOGLE REVIEWS QR card')+'" data-company-name="'+xml(company)+'"><title>'+xml(name+' · GOOGLE REVIEWS · '+t.name)+'</title><rect width="900" height="1427" rx="22" fill="'+t.bg+'"/>'+backdrop+
+ '<text x="827" y="70" text-anchor="end" font-family="Arial,sans-serif" font-size="19" fill="'+t.muted+'">'+xml(id)+'</text>'+google+
+ textLines(['Review us on Google'],450,245,55,t.ink,'Arial,sans-serif','middle',700)+
+ '<path d="M330 278H570" stroke="'+t.line+'" stroke-width="2"/>'+
+ textLines(nameLines,450,340,48,t.ink,'Arial,sans-serif','middle',600,1.14)+
+ '<g aria-label="Share your rating">'+stars+'</g>'+
+ textLines(['Your experience matters.'],450,510,30,t.ink,'Arial,sans-serif','middle',600)+
+ textLines(['Open your camera and scan the code.','Leave your honest review on Google.'],450,552,24,t.muted,'Arial,sans-serif','middle',400,1.35)+
+ '<rect x="140" y="620" width="620" height="620" rx="24" fill="#ffffff" stroke="'+t.line+'" stroke-width="2"/>'+embedded+
+ '<text x="450" y="1282" text-anchor="middle" fill="'+t.ink+'" font-family="Arial,sans-serif" font-size="22" font-weight="700" letter-spacing="2">SCAN TO REVIEW</text>'+
+ '<path d="M100 1305H800" stroke="'+t.line+'" stroke-width="2"/>'+
+ '<text x="450" y="1336" text-anchor="middle" fill="'+t.muted+'" font-family="Arial,sans-serif" font-size="19" letter-spacing="2">POWERED BY</text>'+
+ textLines(wrapText(company,744,34,2),450,1377,34,t.ink,'Arial,sans-serif','middle',800,1.08)+
+ '<path d="M95 1423H272" stroke="#4285f4" stroke-width="8"/><path d="M272 1423H450" stroke="#ea4335" stroke-width="8"/><path d="M450 1423H627" stroke="#fbbc05" stroke-width="8"/><path d="M627 1423H805" stroke="#34a853" stroke-width="8"/></svg>';
+}
+
 function cardSVG(config,qrSVG,prefs){
+ if(kindOf(config.kind)==='review')return reviewCardSVG(config,qrSVG,prefs);
  const kind=kindOf(config.kind),p=preferences(config,prefs),t=themeFor(config,p),restaurant=kind==='restaurant',height=restaurant?1269:1427;
  const heading=restaurant?'Welcome to our table':'Share your experience';
  const copy=restaurant?[config.features?.length?config.features.slice(0,5).join(' · '):'Explore our menu and guest connections.','Everything for your visit, in one scan.']:['Open your camera and scan the code.','Leave your honest review on Google.'];
