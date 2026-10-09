@@ -44,10 +44,10 @@ test('guest menu retains diet, availability, allergens, prices and honest Google
 test('public restaurant API ignores a tampered paid theme until its add-on is approved',async()=>{
  const oldFetch=globalThis.fetch,oldURL=process.env.SUPABASE_URL,oldKey=process.env.SUPABASE_SERVICE_ROLE_KEY;
  process.env.SUPABASE_URL='https://database.example.invalid';process.env.SUPABASE_SERVICE_ROLE_KEY='sb_secret_test';
- let rows=[];
+ let rows=[],themeDown=false;
  globalThis.fetch=async(url,options)=>{
   if(String(url).includes('restaurant_venues?'))return Response.json([{id:venue,slug:'the-table',published:true,theme:'garden',name:'The Table',menu:[],wifi_enabled:false,owner_id:'private-owner',created_by:'private-agent'}]);
-  if(String(url).includes('restaurant_requests?'))return Response.json(rows);
+  if(String(url).includes('restaurant_requests?'))return themeDown?new Response('Unavailable',{status:503}):Response.json(rows);
   if(String(url).includes('restaurant_events')&&options.method==='POST')return Response.json([]);
   throw Error('Unexpected request '+url);
  };
@@ -57,6 +57,7 @@ test('public restaurant API ignores a tampered paid theme until its add-on is ap
   assert.equal(body.venue.theme,'glass-bistro');assert.equal(body.venue.owner_id,undefined);
   rows=[approved];response=await call();body=await response.json();assert.equal(body.venue.theme,'garden');
   rows=[{...approved,status:'closed'}];response=await call();body=await response.json();assert.equal(body.venue.theme,'glass-bistro');
+  themeDown=true;response=await call();body=await response.json();assert.equal(response.status,200);assert.equal(body.venue.theme,'glass-bistro');
  }finally{
   globalThis.fetch=oldFetch;
   if(oldURL===undefined)delete process.env.SUPABASE_URL;else process.env.SUPABASE_URL=oldURL;

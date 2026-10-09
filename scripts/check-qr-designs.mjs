@@ -93,8 +93,9 @@ try{
  assert.equal(jsQR(new Uint8ClampedArray(qrOnly.data),qrOnly.width,qrOnly.height)?.data,origin+'/qr-designs/?sample=review');
  const popupPromise=page.waitForEvent('popup');
  await page.locator('[data-card-export="print"]').click();
- const popup=await popupPromise;await popup.locator('svg').waitFor();
+ const popup=await popupPromise;await popup.locator('body>svg').waitFor();
  assert.ok((await popup.locator('style').innerText()).includes('@page{size:54mm 85.6mm;margin:0}'));
+ assert.equal(await popup.locator('body>svg>svg').evaluate(el=>getComputedStyle(el).width),'570px','Print CSS must not resize the nested QR.');
  await popup.close();
  await page.reload();await page.locator('[data-card-preview][data-ready="true"]').waitFor();
  assert.equal(await page.locator('[data-card-theme="onyx"]').getAttribute('aria-pressed'),'true');

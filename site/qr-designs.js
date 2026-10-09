@@ -134,7 +134,7 @@ function mount(host,config){
    const w=root.open('','_blank','width=680,height=950');if(!w)throw Error('Allow the print window to open, then try again.');
    const restaurant=kindOf(config.kind)==='restaurant',width=restaurant?'105mm':'54mm',height=restaurant?'148mm':'85.6mm';
    w.onload=()=>w.setTimeout(()=>w.print(),250);
-   w.document.write('<!doctype html><html><head><meta charset="utf-8"><title>'+xml(config.id||config.name||'QR card')+'</title><style>@page{size:'+width+' '+height+';margin:0}*{box-sizing:border-box}body{margin:0;background:white}svg{display:block;width:'+width+';height:'+height+';print-color-adjust:exact;-webkit-print-color-adjust:exact}</style></head><body>'+svg+'</body></html>');w.document.close();return;
+   w.document.write('<!doctype html><html><head><meta charset="utf-8"><title>'+xml(config.id||config.name||'QR card')+'</title><style>@page{size:'+width+' '+height+';margin:0}*{box-sizing:border-box}body{margin:0;background:white}body>svg{display:block;width:'+width+';height:'+height+';print-color-adjust:exact;-webkit-print-color-adjust:exact}</style></head><body>'+svg+'</body></html>');w.document.close();return;
   }
   if(type==='svg')return downloadBlob(new Blob([svg],{type:'image/svg+xml;charset=utf-8'}),filename(config,prefs,'svg'));
   if(type==='qr')return downloadBlob(await pngBlob(raw,1520),filename(config,prefs,'png').replace('.png','-qr-only.png'));

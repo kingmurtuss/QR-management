@@ -37,7 +37,9 @@ export default async function handler(req) {
    const {owner_id,created_by,agent_support,suspended,handed_over_at,handed_over_by,...venue}=v;
    // Completed theme add-ons can only be approved by the administrator.
    // Never serve a paid design just because a client wrote its theme ID.
-   const themeRequests=await db('restaurant_requests?venue_id=eq.'+v.id+'&kind=eq.addon&status=eq.completed&select=venue_id,kind,status,service_name');
+   let themeRequests=[];
+   try{themeRequests=await db('restaurant_requests?venue_id=eq.'+v.id+'&kind=eq.addon&status=eq.completed&select=venue_id,kind,status,service_name');}
+   catch{console.error('Guest theme access unavailable; serving the included design.');}
    venue.theme=publishedGuestTheme(v.theme,guestThemeAccess(themeRequests,v.id));
    if(!v.wifi_enabled){venue.wifi_ssid='';venue.wifi_password='';}
    await db('restaurant_events','POST',{venue_id:v.id,event:'scan'});
