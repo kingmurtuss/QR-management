@@ -15,3 +15,51 @@
 
 /* Restaurant accents remain customisable inside the shared hospitality theme. */
 .guest-link .icon{color:var(--accent)}.guest-link.primary{background:linear-gradient(120deg,color-mix(in srgb,var(--accent) 80%,#fff0dc),color-mix(in srgb,var(--accent) 92%,#24170e))}.guest-link.primary .icon{color:#3a2818}.guest-logo{background:linear-gradient(135deg,color-mix(in srgb,var(--accent) 70%,#ffe5c7),color-mix(in srgb,var(--accent) 85%,#352813))}
+
+/* 2026-10 responsive hardening: setup, generated QR and shared restaurant workspace */
+html,body{max-width:100%;overflow-x:hidden}
+.content,.panel,.editor,.workspace,.topbar,.heading,.row,.grid2,.form-actions,.card-preview{min-width:0}
+.qr canvas,.qr svg{max-width:100%!important;height:auto!important}
+.card-preview{width:min(100%,360px)}
+@media(max-width:750px){
+  body{font-size:14px}
+  input,textarea,select{font-size:16px;min-height:46px}
+  button,.btn,.link,.nav button,.tabs button{min-height:44px}
+  .sidebar{margin:8px 8px 0;padding:14px 12px 8px}
+  .sidebar .brand{margin-bottom:12px}
+  .nav{scrollbar-width:none;-webkit-overflow-scrolling:touch}
+  .nav::-webkit-scrollbar,.tabs::-webkit-scrollbar{display:none}
+  .topbar{padding:0 14px;gap:8px}
+  .topbar>.row{min-width:0;flex-wrap:wrap;justify-content:flex-end}
+  .content{padding:20px 12px 36px}
+  .heading,.heading.row{display:grid;grid-template-columns:1fr;gap:12px}
+  .heading .btn,.heading .row,.heading .form-actions{width:100%}
+  .heading .btn{white-space:normal}
+  .metrics{grid-template-columns:1fr}
+  .editor{padding:18px 14px}
+  .grid2{grid-template-columns:minmax(0,1fr)}
+  .form-actions{display:grid;grid-template-columns:1fr}
+  .form-actions .btn,.editor>.btn,.editor form>.btn{width:100%}
+  .setup-progress{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:7px}
+  .setup-progress span{text-align:center;white-space:normal}
+  .tabs{margin-left:-2px;margin-right:-2px;-webkit-overflow-scrolling:touch}
+  .panel-head{padding:16px 14px;gap:10px;flex-wrap:wrap}
+  .panel-head>.row{flex-wrap:wrap;width:100%}
+  .table-wrap{max-width:100%;-webkit-overflow-scrolling:touch}
+  table{min-width:620px}
+  td,th{padding:14px 12px}
+  .card-preview{margin:18px auto;padding:24px 14px;border-radius:18px}
+  .card-preview h2{font-size:26px}
+  .qr{width:min(100%,280px);padding:12px}
+  .qr canvas,.qr svg{width:100%!important}
+  .print-note{padding:0 10px 20px}
+  dialog{width:calc(100% - 20px);max-height:calc(100dvh - 20px);padding:24px 16px}
+  .workspace select.restaurant-select,.search{width:100%;max-width:none}
+}
+@media(max-width:380px){
+  .content{padding-left:10px;padding-right:10px}
+  .setup-progress{grid-template-columns:1fr}
+  .brand{font-size:19px}
+  .topbar .pill{display:none}
+  .card-preview{padding-left:10px;padding-right:10px}
+}
