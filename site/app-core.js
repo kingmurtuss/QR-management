@@ -8,6 +8,7 @@ let sb = null;
 let session = null;
 let profile = null;
 let settings = null;
+let reviewAiConfigured = false;
 let cache = {
   profiles: [], qrs: [], businesses: [], withdrawals: [], tickets: [], appointments: [], logs: []
 };
@@ -143,6 +144,7 @@ async function init() {
   try {
     showBoot('Loading secure configuration…');
     const cfg = await loadPublicConfig();
+    reviewAiConfigured = cfg.reviewAiConfigured === true;
     sb = window.supabase.createClient(cfg.supabaseUrl, cfg.supabasePublishableKey, {
       auth: {
         persistSession: true,

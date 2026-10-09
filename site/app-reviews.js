@@ -4,6 +4,7 @@ let replyHistory = [];
 let reviewLoadRun = 0;
 function renderReviewAssistant() {
   return `<section class="review-addon-hero"><div><div class="addon-eyebrow">OPTIONAL BUSINESS ADD-ON</div><h2>Great feedback starts<br>with the right words.</h2><p>Help visitors write an honest review. Help your team write a thoughtful reply.</p><div class="actions"><a class="primary-btn" href="/review.html?demo=1" target="_blank" rel="noopener">Try customer preview ↗</a><button class="ghost-btn" id="review-refresh">Refresh add-on</button></div></div><div class="addon-illustration" aria-hidden="true"><div class="addon-spark">✦</div><span>YOUR EXPERIENCE</span><div class="addon-line"></div><div class="addon-line short"></div><b>★ ★ ★ ★ ★</b><small>Choose · Edit · Share</small></div></section>
+    ${!reviewAiConfigured ? '<div class="alert info">AI is awaiting activation. Visitors can use basic suggestions, and your team can use basic reply drafts until AI is connected.</div>' : ''}
     <div class="alert info">Customers choose their own rating and edit their draft before posting on Google. All ratings can open Google directly. Replies are drafts you copy into Google Business Profile.</div>
     <div id="addon-status" role="status" class="muted tiny">Loading your businesses…</div>
     <section class="card"><div class="card-head"><div><h2>Business add-ons</h2><p>Turn on the assistant for each business. Existing printed QR cards work automatically.</p></div></div><div id="addon-businesses"></div></section>
