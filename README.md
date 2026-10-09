@@ -137,7 +137,7 @@ The **Review Assistant** sidebar page lets admins enable the add-on per business
 
 Apply `supabase/migrations/20261009043909_review_assistant_addon.sql` once to an existing installation, after the base schema. It adds two RLS-protected tables. The migration does not enable the add-on for any business. Workers can view settings and generate/read replies only for businesses visible through their existing ownership policies. Only admins can change add-on settings.
 
-Customer flow: choose any rating from 1–5, describe a genuine first-hand experience, choose/edit one of three suggestions, copy the text, open Google, and paste/submit manually. A direct Google link is available to all ratings. No reviews are posted, prefilled, or verified automatically. Customer notes and generated review drafts are not stored in Supabase; they are sent to the configured AI provider only when generating suggestions.
+Customer flow: scan the activated business QR, tap **Generate Review**, then automatically copy the generated starter and redirect to the business's Google Review page. The customer pastes, chooses their rating, checks/edits and submits on Google. No customer text, rating selection, questionnaire or confirmation checkbox is required before generation. If the browser denies asynchronous clipboard permission, the generated text stays visible with a **Copy & open Google** button and a manual-copy fallback. The demo copies a sample but does not redirect to a real business. Generated starters use known business information without inventing an experience or defaulting to praise; the customer decides what to post. No reviews are submitted or verified automatically. Customer review text is not stored in Supabase.
 
 Reply flow: paste a real Google review into the dashboard, generate three replies, edit and copy a reply, then publish it from the business's Google Business Profile. Original review text and the three initial reply drafts are saved in `review_reply_drafts`. These records remain private to assigned active accounts and admins. Edits made after generation are not automatically saved. There is no Google review synchronization or automated reply posting; those require an authorized Google Business Profile API integration.
 
@@ -147,7 +147,7 @@ The three server functions use the official OpenAI SDK. On eligible credit-based
 
 AI calls consume provider tokens / Netlify AI credits. Requests are limited to six per minute per IP+domain per generation function. Input text is bounded, each generation produces three short drafts, SDK retries are disabled, and the request timeout is 22 seconds. Enable the add-on only for the businesses you want to use this feature.
 
-Without provider credentials, the app clearly labels basic suggestions and preserves the customer's original text. It never represents these templates as AI. A configured provider failing returns an actionable error, while the customer can still go directly to Google.
+Without provider credentials, the app clearly labels basic review starters. It never represents these templates as AI. A configured provider failing returns an actionable error, while the customer can still go directly to Google.
 
 Interactive sample: `/review.html?demo=1`. The sample uses basic suggestions and never targets a real business. Live assistant: `/review.html?code=QR00001` for an active QR whose business has the add-on enabled. Opening that page directly does not add another scan; the `/qr/` resolver records the scan once.
 

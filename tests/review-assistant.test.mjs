@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { validateInput, basicDrafts, safeReviewUrl, generateDrafts } from '../netlify/lib/review-assistant.mjs';
+import { validateInput, basicDrafts, safeReviewUrl, generateDrafts, generateReviewStarter } from '../netlify/lib/review-assistant.mjs';
 import generate from '../netlify/functions/review-generate.mjs';
 import reply from '../netlify/functions/review-reply.mjs';
 import redirect from '../netlify/functions/qr-redirect.mjs';
@@ -38,10 +38,10 @@ test('public generation rejects disabled QR assistant before model call', async 
   setup(t, async url => Response.json(String(url).includes('qr_codes?') ? [{ business_id: 'b1' }] : String(url).includes('businesses?') ? [{ id:'b1', name:'Business', google_review_url:'https://g.page/r/test/review' }] : [{enabled:false}]));
   assert.equal((await generate(req(body))).status,404);
 });
-test('enabled QR accepts a negative experience and returns safe basic output', async t => {
+test('activated business generates with no customer input and returns stored Google destination', async t => {
   setup(t, async url => Response.json(String(url).includes('qr_codes?') ? [{business_id:'b1'}] : String(url).includes('businesses?') ? [{id:'b1', name:'Business', google_review_url:'https://g.page/r/test/review'}] : [{enabled:true}]));
-  const response = await generate(req(body)); assert.equal(response.status,200);
-  const result = await response.json(); assert.equal(result.source,'basic'); assert.equal(result.drafts[0],body.text);
+  const response = await generate(req({code:'QR00001',reviewUrl:'https://attacker.example'})); assert.equal(response.status,200);
+  const result = await response.json(); assert.equal(result.source,'basic'); assert.match(result.review,/Business/); assert.equal(result.reviewUrl,'https://g.page/r/test/review'); assert.ok(!result.review.includes('great'));
 });
 test('reply generation rejects unauthenticated access', async t => {
   setup(t, async () => { throw new Error('Must not touch database without authentication'); });
@@ -95,4 +95,15 @@ test('AI drafts use supplied facts, rating and language through server SDK', asy
     return Response.json({id:'test',object:'chat.completion',created:1,model:'gpt-4.1-mini',choices:[{index:0,message:{role:'assistant',content:JSON.stringify({drafts:['मेरा अनुभव अच्छा नहीं था।','सेवा धीमी थी।','खाना ठंडा था।']})},finish_reason:'stop'}]});
   });
   const result=await generateDrafts({...body,language:'Hindi'},'Business'); assert.equal(result.source,'ai'); assert.equal(result.language,'Hindi'); assert.equal(result.drafts.length,3);
+});
+
+test('no-input AI starter uses the business profile without a customer rating', async t => {
+  mockEnv(t,'OPENAI_API_KEY','test-server-key'); mockEnv(t,'OPENAI_BASE_URL','https://ai.example/v1');
+  t.mock.method(globalThis,'fetch',async (url,options) => {
+    const payload=JSON.parse(options.body); const facts=JSON.parse(payload.messages[1].content);
+    assert.equal(facts.businessName,'Garden Table'); assert.equal(facts.category,'Restaurant'); assert.equal(facts.rating,undefined); assert.equal(facts.experience,undefined);
+    assert.match(payload.messages[0].content,/never invent/); assert.ok(payload.max_tokens<=180);
+    return Response.json({id:'test',object:'chat.completion',created:1,model:'gpt-4.1-mini',choices:[{index:0,message:{role:'assistant',content:JSON.stringify({review:'Sharing my feedback about Garden Table.'})},finish_reason:'stop'}]});
+  });
+  const result=await generateReviewStarter('English',{name:'Garden Table',category:'Restaurant'}); assert.equal(result.source,'ai'); assert.equal(result.review,'Sharing my feedback about Garden Table.');
 });
