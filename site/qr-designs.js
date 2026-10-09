@@ -74,7 +74,7 @@ function cardSVG(config,qrSVG,prefs){
  const qrTop=restaurant?490:620,qrSize=620,inner=570,qrX=165,innerY=qrTop+25;
  const embedded=String(qrSVG).replace(/<\?xml[\s\S]*?\?>/g,'').replace(/<!DOCTYPE[^>]*>/g,'').replace(/<svg\b[^>]*>/,'<svg x="'+qrX+'" y="'+innerY+'" width="'+inner+'" height="'+inner+'" viewBox="0 0 760 760" xmlns="http://www.w3.org/2000/svg">');
  if(!embedded.includes('<svg '))throw Error('The QR could not be rendered. Please try again.');
- const nameLines=wrapText(name,editorial?700:748,58,band&&restaurant?2:3),titleY=restaurant?354:436;
+ const nameLines=wrapText(name,editorial?700:748,58,restaurant?2:3),titleY=restaurant?354:436;
  const context=restaurant?'RESTAURANT MENU':'GOOGLE REVIEWS';
  const id=String(config.code||config.id||'').slice(0,36);
  return '<svg xmlns="http://www.w3.org/2000/svg" width="900" height="'+height+'" viewBox="0 0 900 '+height+'" role="img" aria-label="'+xml(name+' '+context+' QR card')+'"><title>'+xml(name+' · '+context+' · '+t.name)+'</title>'+

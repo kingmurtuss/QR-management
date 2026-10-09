@@ -23,6 +23,7 @@ const origin='http://127.0.0.1:'+server.address().port;
 const browser=await chromium.launch({headless:true});
 try{
  const page=await browser.newPage({viewport:{width:1440,height:1100},deviceScaleFactor:1});
+ await page.context().addInitScript(()=>{window.print=()=>{window.printInvoked=true;};});
  const styling=await readFile('node_modules/qr-code-styling/lib/qr-code-styling.js','utf8');
  const legacy=await readFile('node_modules/qrcodejs/qrcode.min.js','utf8');
  await page.route('https://cdn.jsdelivr.net/npm/qr-code-styling@*/**',r=>r.fulfill({contentType:'text/javascript',body:styling}));
@@ -74,6 +75,17 @@ try{
  const downloaded=PNG.sync.read(await readFile(out+'/downloaded-review-card.png'));
  assert.equal(downloaded.width,1800);
  assert.equal(jsQR(new Uint8ClampedArray(downloaded.data),downloaded.width,downloaded.height)?.data,origin+'/qr-designs/?sample=review');
+ downloadPromise=page.waitForEvent('download');
+ await page.locator('[data-card-export="qr"]').click();download=await downloadPromise;
+ await download.saveAs(out+'/downloaded-qr-only.png');
+ const qrOnly=PNG.sync.read(await readFile(out+'/downloaded-qr-only.png'));
+ assert.equal(qrOnly.width,1520);
+ assert.equal(jsQR(new Uint8ClampedArray(qrOnly.data),qrOnly.width,qrOnly.height)?.data,origin+'/qr-designs/?sample=review');
+ const popupPromise=page.waitForEvent('popup');
+ await page.locator('[data-card-export="print"]').click();
+ const popup=await popupPromise;await popup.locator('svg').waitFor();
+ assert.ok((await popup.locator('style').innerText()).includes('@page{size:54mm 85.6mm;margin:0}'));
+ await popup.close();
  await page.reload();await page.locator('[data-card-preview][data-ready="true"]').waitFor();
  assert.equal(await page.locator('[data-card-theme="onyx"]').getAttribute('aria-pressed'),'true');
  assert.equal(await page.locator('[data-card-pattern="dots"]').getAttribute('aria-pressed'),'true');
@@ -116,5 +128,20 @@ try{
  },longURL);
  const long=PNG.sync.read(Buffer.from(longBytes));
  assert.equal(jsQR(new Uint8ClampedArray(long.data),long.width,long.height)?.data,longURL);
+ // Existing Google review modal integrates the designer with an assigned business.
+ await page.goto(origin+'/');
+ await page.waitForFunction(()=>typeof previewQr==='function');
+ await page.evaluate(async()=>{
+  settings={company_name:'Field Ops',qr_base_url:location.origin+'/qr/'};
+  cache.qrs=[{id:'fixture-qr',code:'QR00042',business_id:'fixture-business'}];
+  cache.businesses=[{id:'fixture-business',name:'A Professional Business'}];
+  previewQr('fixture-qr');await reviewQRStudio.ready;
+ });
+ assert.equal(await page.locator('#review-qr-designer [data-card-theme]').count(),6);
+ assert.ok((await page.locator('#modal-content').innerText()).includes('QR destination: '+origin+'/qr/QR00042'));
+ await page.locator('#review-qr-designer [data-card-theme="ivory"]').click();
+ await page.waitForFunction(()=>document.querySelector('#review-qr-designer svg title')?.textContent.includes('Ivory'));
+ assert.equal(await page.locator('#modal').evaluate(el=>el.open),true,'Theme selection must not close the review modal.');
+ await page.screenshot({path:out+'/review-dashboard-modal.png',fullPage:true});
  console.log('PASS: gallery selection, preference persistence, PNG/SVG downloads, mobile layout, manager integration, read-only controls and long QR destinations.');
 }finally{await browser.close();await new Promise(r=>server.close(r));}
