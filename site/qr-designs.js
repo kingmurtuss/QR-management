@@ -43,8 +43,8 @@ function qrOptions(config,prefs,size=760){
  const p=preferences(config,prefs),t=themeFor(config,p),original=p.pattern==='original';
  return {width:size,height:size,type:'svg',data:validateURL(config.url),margin:Math.ceil(size*4/29),
  qrOptions:{errorCorrectionLevel:'H'},dotsOptions:original?{type:'extra-rounded',gradient:{type:'linear',rotation:Math.PI/4,colorStops:[{offset:0,color:'#07111f'},{offset:.55,color:'#173b70'},{offset:1,color:'#0f5a67'}]}}:{type:patterns.find(s=>s.id===p.pattern).type,color:t.qrInk},
- cornersSquareOptions:{type:p.pattern==='square'?'square':'extra-rounded',color:original?'#2563eb':t.qrInk},
- cornersDotOptions:{type:p.pattern==='square'?'square':'dot',color:original?'#07111f':t.qrInk},
+ cornersSquareOptions:{type:original?'extra-rounded':'square',color:original?'#2563eb':t.qrInk},
+ cornersDotOptions:{type:original?'dot':'square',color:original?'#07111f':t.qrInk},
  backgroundOptions:{color:'#ffffff'}};
 }
 function weight(c){return /\s/.test(c)?.28:/[MW@]/.test(c)?.93:/[mw]/.test(c)?.84:/[ilI.,:;!'|]/.test(c)?.27:/[A-Z0-9]/.test(c)?.65:c.codePointAt(0)>255?.94:.53;}
