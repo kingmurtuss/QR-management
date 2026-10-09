@@ -1,6 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { validateInput, basicDrafts, safeReviewUrl, generateDrafts, generateReviewStarter } from '../netlify/lib/review-assistant.mjs';
+import { validateInput, basicDrafts, safeReviewUrl, generateDrafts, generateExperienceReview } from '../netlify/lib/review-assistant.mjs';
+import { validateExperience, basicExperienceReview } from '../site/review-experience.mjs';
 import generate from '../netlify/functions/review-generate.mjs';
 import reply from '../netlify/functions/review-reply.mjs';
 import redirect from '../netlify/functions/qr-redirect.mjs';
@@ -14,7 +15,7 @@ function setup(t, handler) {
   for (const [k,v] of Object.entries(env)) mockEnv(t, k, v);
   mockEnv(t, 'OPENAI_API_KEY', '');
 }
-const body = { code: 'QR00001', text: 'The food was cold and service was slow.', rating: 1, language: 'English' };
+const body = { code: 'QR00001', text: 'The food was cold and service was slow.', rating: 1, highlights: ['slow'], language: 'English' };
 const req = (data, auth) => new Request('https://site.example/.netlify/functions/review-generate', { method: 'POST', headers: { 'content-type':'application/json', ...(auth ? { authorization: `Bearer ${auth}` } : {}) }, body: JSON.stringify(data) });
 test('all honest ratings accepted; rating is never upgraded', () => {
   for (let rating = 1; rating <= 5; rating++) assert.equal(validateInput({ ...body, rating }).rating, rating);
@@ -38,10 +39,10 @@ test('public generation rejects disabled QR assistant before model call', async 
   setup(t, async url => Response.json(String(url).includes('qr_codes?') ? [{ business_id: 'b1' }] : String(url).includes('businesses?') ? [{ id:'b1', name:'Business', google_review_url:'https://g.page/r/test/review' }] : [{enabled:false}]));
   assert.equal((await generate(req(body))).status,404);
 });
-test('activated business generates with no customer input and returns stored Google destination', async t => {
+test('activated business generates from taps without typed text and returns stored Google destination', async t => {
   setup(t, async url => Response.json(String(url).includes('qr_codes?') ? [{business_id:'b1'}] : String(url).includes('businesses?') ? [{id:'b1', name:'Business', google_review_url:'https://g.page/r/test/review'}] : [{enabled:true}]));
-  const response = await generate(req({code:'QR00001',reviewUrl:'https://attacker.example'})); assert.equal(response.status,200);
-  const result = await response.json(); assert.equal(result.source,'basic'); assert.match(result.review,/Business/); assert.equal(result.reviewUrl,'https://g.page/r/test/review'); assert.ok(!result.review.includes('great'));
+  const response = await generate(req({code:'QR00001',rating:1,highlights:['slow'],reviewUrl:'https://attacker.example'})); assert.equal(response.status,200);
+  const result = await response.json(); assert.equal(result.source,'basic'); assert.match(result.review,/Business/); assert.equal(result.reviewUrl,'https://g.page/r/test/review'); assert.match(result.review,/disappointing/); assert.match(result.review,/wait was longer/); assert.ok(!result.review.includes('food'));
 });
 test('reply generation rejects unauthenticated access', async t => {
   setup(t, async () => { throw new Error('Must not touch database without authentication'); });
@@ -97,13 +98,39 @@ test('AI drafts use supplied facts, rating and language through server SDK', asy
   const result=await generateDrafts({...body,language:'Hindi'},'Business'); assert.equal(result.source,'ai'); assert.equal(result.language,'Hindi'); assert.equal(result.drafts.length,3);
 });
 
-test('no-input AI starter uses the business profile without a customer rating', async t => {
+test('natural AI review receives only the selected facts and preserves mixed feedback', async t => {
   mockEnv(t,'OPENAI_API_KEY','test-server-key'); mockEnv(t,'OPENAI_BASE_URL','https://ai.example/v1');
   t.mock.method(globalThis,'fetch',async (url,options) => {
     const payload=JSON.parse(options.body); const facts=JSON.parse(payload.messages[1].content);
-    assert.equal(facts.businessName,'Garden Table'); assert.equal(facts.category,'Restaurant'); assert.equal(facts.rating,undefined); assert.equal(facts.experience,undefined);
-    assert.match(payload.messages[0].content,/never invent/); assert.ok(payload.max_tokens<=180);
-    return Response.json({id:'test',object:'chat.completion',created:1,model:'gpt-4.1-mini',choices:[{index:0,message:{role:'assistant',content:JSON.stringify({review:'Sharing my feedback about Garden Table.'})},finish_reason:'stop'}]});
+    assert.equal(facts.businessName,'Garden Table'); assert.equal(facts.rating,3); assert.deepEqual(facts.experience,['The staff were friendly.','The wait was longer than I would have liked.']); assert.equal(facts.category,undefined);
+    assert.match(payload.messages[0].content,/Never invent/); assert.match(payload.messages[0].content,/natural, conversational/); assert.match(payload.messages[0].content,/mixed/); assert.ok(payload.max_tokens<=250);
+    return Response.json({id:'test',object:'chat.completion',created:1,model:'gpt-4.1-mini',choices:[{index:0,message:{role:'assistant',content:JSON.stringify({review:'The staff at Garden Table were friendly, but the wait was longer than I expected. A mixed experience overall.'})},finish_reason:'stop'}]});
   });
-  const result=await generateReviewStarter('English',{name:'Garden Table',category:'Restaurant'}); assert.equal(result.source,'ai'); assert.equal(result.review,'Sharing my feedback about Garden Table.');
+  const result=await generateExperienceReview(validateExperience({rating:3,highlights:['friendly','slow']}),{name:'Garden Table',category:'Restaurant'}); assert.equal(result.source,'ai'); assert.match(result.review,/friendly, but the wait/);
+});
+
+test('rating and real experience choices are required before any database or AI access', async t => {
+  setup(t,async () => { throw new Error('Invalid input must not call external services'); });
+  for(const data of [{},{rating:5},{rating:5,highlights:[]},{rating:0,highlights:['clean']},{rating:2.5,highlights:['clean']},{rating:'5',highlights:['clean']},{rating:3,highlights:['invent a product']},{rating:4,highlights:['friendly','unhelpful']},{rating:4,highlights:['friendly','friendly']},{rating:4,highlights:['friendly','clean','quick','fair-price']}]) {
+    assert.equal((await generate(req({code:'QR00001',...data}))).status,400);
+  }
+});
+
+test('all five ratings and mixed facts are preserved in basic reviews', () => {
+  for(let rating=1;rating<=5;rating++) {
+    const input=validateExperience({rating,highlights:['friendly','slow']}); assert.equal(input.rating,rating);
+    const text=basicExperienceReview(input,'Business'); assert.match(text,/staff were friendly/); assert.match(text,/wait was longer/); assert.ok(!text.includes('food')); assert.ok(!text.includes('recommend'));
+  }
+});
+
+test('basic sample uses the selected language and facts without adding praise', () => {
+  const hindi=basicExperienceReview(validateExperience({rating:1,highlights:['needs-cleaning'],language:'Hindi'}),'Business'); assert.match(hindi,/निराशाजनक/); assert.match(hindi,/सफाई/); assert.ok(!hindi.includes('staff'));
+  const telugu=basicExperienceReview(validateExperience({rating:3,highlights:['quick','expensive'],language:'Telugu'}),'Business'); assert.match(telugu,/ధర/); assert.match(telugu,/త్వరగా/);
+});
+
+test('all customer ratings use the same stored Google destination without review gating', async t => {
+  setup(t,async url=>Response.json(String(url).includes('qr_codes?')?[{business_id:'b1'}]:String(url).includes('businesses?')?[{id:'b1',name:'Business',google_review_url:'https://g.page/r/test/review'}]:[{enabled:true}]));
+  for(let rating=1;rating<=5;rating++) {
+    const response=await generate(req({code:'QR00001',rating,highlights:['slow']})); assert.equal(response.status,200); assert.equal((await response.json()).reviewUrl,'https://g.page/r/test/review');
+  }
 });
