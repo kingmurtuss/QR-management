@@ -42,7 +42,7 @@ test('public generation rejects disabled QR assistant before model call', async 
 test('activated business generates from taps without typed text and returns stored Google destination', async t => {
   setup(t, async url => Response.json(String(url).includes('qr_codes?') ? [{business_id:'b1'}] : String(url).includes('businesses?') ? [{id:'b1', name:'Business', google_review_url:'https://g.page/r/test/review'}] : [{enabled:true}]));
   const response = await generate(req({code:'QR00001',rating:1,highlights:['slow'],reviewUrl:'https://attacker.example'})); assert.equal(response.status,200);
-  const result = await response.json(); assert.equal(result.source,'basic'); assert.match(result.review,/Business/); assert.equal(result.reviewUrl,'https://g.page/r/test/review'); assert.match(result.review,/disappointing/); assert.match(result.review,/wait was longer/); assert.ok(!result.review.includes('food'));
+  const result = await response.json(); assert.equal(result.source,'basic'); assert.match(result.review,/Business/); assert.equal(result.reviewUrl,'https://g.page/r/test/review'); assert.match(result.review,/disappoint/); assert.match(result.review,/wait/); assert.ok(!result.review.includes('food'));
 });
 test('reply generation rejects unauthenticated access', async t => {
   setup(t, async () => { throw new Error('Must not touch database without authentication'); });
@@ -119,13 +119,13 @@ test('rating and real experience choices are required before any database or AI 
 test('all five ratings and mixed facts are preserved in basic reviews', () => {
   for(let rating=1;rating<=5;rating++) {
     const input=validateExperience({rating,highlights:['friendly','slow']}); assert.equal(input.rating,rating);
-    const text=basicExperienceReview(input,'Business'); assert.match(text,/staff were friendly/); assert.match(text,/wait was longer/); assert.ok(!text.includes('food')); assert.ok(!text.includes('recommend'));
+    const text=basicExperienceReview(input,'Business'); assert.match(text,/friendly/); assert.match(text,/wait/); assert.ok(!text.includes('food')); assert.ok(!text.includes('recommend'));
   }
 });
 
 test('basic sample uses the selected language and facts without adding praise', () => {
-  const hindi=basicExperienceReview(validateExperience({rating:1,highlights:['needs-cleaning'],language:'Hindi'}),'Business'); assert.match(hindi,/निराशाजनक/); assert.match(hindi,/सफाई/); assert.ok(!hindi.includes('staff'));
-  const telugu=basicExperienceReview(validateExperience({rating:3,highlights:['quick','expensive'],language:'Telugu'}),'Business'); assert.match(telugu,/ధర/); assert.match(telugu,/త్వరగా/);
+  const hindi=basicExperienceReview(validateExperience({rating:1,highlights:['needs-cleaning'],language:'Hindi'}),'Business'); assert.match(hindi,/निराश/); assert.match(hindi,/सफाई|साफ/); assert.ok(!hindi.includes('staff'));
+  const telugu=basicExperienceReview(validateExperience({rating:3,highlights:['quick','expensive'],language:'Telugu'}),'Business'); assert.match(telugu,/ధర/); assert.match(telugu,/త్వరగా|వేగ/);
 });
 
 test('all customer ratings use the same stored Google destination without review gating', async t => {

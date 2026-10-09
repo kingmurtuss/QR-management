@@ -1,9 +1,13 @@
 import { copyAndContinue } from './review-handoff.mjs';
 import { experienceChoices, validateExperience, basicExperienceReview } from './review-experience.mjs';
+import { createReviewHistory } from './review-history.mjs';
 const $ = s => document.querySelector(s);
 const params = new URLSearchParams(location.search);
 const demo = params.get('demo') === '1';
 const code = (params.get('code') || '').toUpperCase();
+let draftStorage;
+try { draftStorage = sessionStorage; } catch { /* Private browsers can block storage. */ }
+const history = createReviewHistory(draftStorage, `qr-review-history-v1:${demo ? 'sample' : code}`);
 let business = null, generated = null, busy = false;
 const error = message => { $('#page-error').textContent = message; $('#page-error').hidden = !message; };
 const ratingLabels = ['Disappointing', 'Could be better', 'Mixed', 'Good', 'Excellent'];
@@ -58,8 +62,9 @@ async function generate() {
   busy = true; error(''); $('#generate-btn').disabled = true; $('#generate-btn').textContent = 'Generating your review…'; $('#generated-section').hidden = true;
   syncChoices();
   try {
-    const request = demo ? Promise.resolve({ review: basicExperienceReview(input, business.name), source: 'basic' }) : fetch('/.netlify/functions/review-generate', {
-      method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ code, ...input })
+    const previousReviews = history.recent();
+    const request = demo ? Promise.resolve({ review: basicExperienceReview(input, business.name, previousReviews), source: 'basic' }) : fetch('/.netlify/functions/review-generate', {
+      method: 'POST', cache: 'no-store', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ code, ...input, previousReviews })
     }).then(async res => { const data = await res.json(); if (!res.ok) throw new Error(data.error || 'Could not generate a review.'); return data; });
     // Start clipboard permission in the tap event, including Safari's gesture requirement.
     const supportsPromiseClipboard = Boolean(navigator.clipboard?.write && window.ClipboardItem);
@@ -69,6 +74,7 @@ async function generate() {
     } catch { /* Some browsers expose this API without supporting promised data. */ }
     generated = await request;
     if (!generated.review || typeof generated.review !== 'string') throw new Error('The review could not be generated. Please try again.');
+    history.record(generated.review);
     $('#generated-review').value = generated.review;
     const url = demo ? null : generated.reviewUrl || business.reviewUrl;
     let copied;
@@ -80,7 +86,7 @@ async function generate() {
 }
 function showResult(copied, url) {
   $('#generated-section').hidden = false; $('#step-three').classList.add('active');
-  $('#generation-status').textContent = copied ? (demo ? 'Copied ✓ The live flow now opens Google so you can paste, check your rating, and submit. This preview uses a basic sample; live AI varies the wording.' : 'Copied ✓ Opening Google. Check your review, paste it, set your rating, and submit.') : 'Your browser needs another tap to copy. Tap below to copy the review and open Google.';
+  $('#generation-status').textContent = copied ? (demo ? 'Copied ✓ Tap Generate Review again for different wording. This preview uses varied basic drafts; the live flow opens Google after copying.' : `Copied ✓ ${generated.source === 'basic' ? 'Basic draft ready. ' : ''}Opening Google. Check your review, paste it, set your rating, and submit.`) : 'Your browser needs another tap to copy. Tap below to copy the review and open Google.';
   $('#copy-continue').textContent = demo ? 'Copy sample again' : 'Copy & open Google →';
   $('#manual-google').hidden = !url || copied;
   if (url) $('#manual-google').href = url;
