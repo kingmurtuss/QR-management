@@ -1,8 +1,8 @@
 # YAM Table restaurant module
 
-Open `/restaurants/` and sign in with an existing QR Field Ops account. Administrators can manage all venues; other active accounts manage only the venues they own. The original QR review redirects and field operations remain available at `/`.
+Agents use the **Set up Restaurant** entry in the existing QR workspace sidebar. It opens `/restaurants/?setup=1` and a three-step restaurant onboarding form: restaurant identity, branding, and guest features. The agent then adds the menu and publishes a restaurant QR. Existing authentication is shared for convenience. `/restaurants/?agent-demo=1&setup=1` provides a labelled agent setup demo with changes stored only in the browser. Administrators can manage all venues; other active accounts manage only the venues they own. Restaurant and Google-review QR workflows use separate records and screens. Restaurant onboarding never allocates, activates, changes or writes Google-review QR cards, businesses, scan records or commissions. The only change to the existing QR app is the new sidebar entry; all its JavaScript and Google-review functions are untouched.
 
-Create a venue, add menu items, enter guest Wi-Fi and review links, configure a loyalty reward, and publish. The permanent guest link is `/restaurants/?venue=your-slug`. Print or download its QR from **QR & table card**. Changing content does not change this link.
+Each restaurant has an independent `REST-...` identifier, its own permanent guest link, branding, menus, guest Wi-Fi, loyalty reward and optional restaurant review link. Create a venue, add menu items, configure its guest features, and publish. The permanent guest link is `/restaurants/?venue=your-slug`. Print or download its QR from **QR & table card**. Changing content does not change this link.
 
 ## Included
 

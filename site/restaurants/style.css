@@ -4,3 +4,5 @@
 @media print{body{background:white}.sidebar,.topbar,.heading,.tabs,.print-note,.btn,#toast,.guest-footer{display:none!important}.workspace{margin:0}.content{padding:0}.panel{border:0}.card-preview{margin:20mm auto;break-inside:avoid;print-color-adjust:exact;-webkit-print-color-adjust:exact}.card-preview .qr img{display:block!important}.card-preview .qr canvas{display:none!important}}
 
 [hidden]{display:none!important}
+
+.setup-progress{display:flex;gap:7px;margin:0 0 25px;flex-wrap:wrap}.setup-progress span{font-size:11px;border-radius:7px;padding:8px 10px;background:#f2f3ed;color:var(--muted)}.setup-progress span.active{background:var(--green);color:white}
