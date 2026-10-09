@@ -72,5 +72,5 @@ function previewQr(id) {
  const url=qrUrl(q.code),business=q.business_id?cache.businesses.find(b=>b.id===q.business_id):null;
  $('#modal-content').innerHTML='<div class="qr-card-dialog-head"><h2>'+esc(q.code)+' · Review card designer</h2><p class="muted small">Choose a professional printed card. The QR destination stays unchanged.</p></div><div id="review-qr-designer"></div><p class="qr-card-destination">QR destination: '+esc(url)+'<br><a href="/qr-designs/" target="_blank" rel="noopener">Compare the QR design gallery ↗</a></p>';
  $('#modal').showModal();
- reviewQRStudio=window.QRDesigns.mount($('#review-qr-designer'),{kind:'review',id:q.code,url,name:business?.name||settings?.company_name||'Your business',company:settings?.company_name||'QR Field Ops'});
+ reviewQRStudio=window.QRDesigns.mount($('#review-qr-designer'),{kind:'review',id:q.code,url,name:business?.name||settings?.company_name||'Your business',company:settings?.company_name&&settings.company_name!=='QR Field Ops'?settings.company_name:'YAM IT SERVICES'});
 }

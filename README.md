@@ -156,12 +156,16 @@ Verification: `npm ci`, `npm test`, `npm run check`. Server functions remain out
 
 ## Restaurant guest theme add-ons
 
-Open a restaurant → **Themes & style**. Four guest menu layouts are available:
+Open a restaurant → **Themes & style**. Six original guest experiences are available:
 
-- **Daily Menu**: included default, clean photo header and category cards.
-- **Garden Cards**: paid theme add-on, sage photo gallery and two-column dish cards.
-- **Evening Edition**: paid theme add-on, editorial dining layout.
-- **Café Journal**: paid theme add-on, warm café typography and paper-style menu.
+- **Daily Menu**: included default, clean blue category tiles and readable dish lists.
+- **Flame Kitchen**: premium orange discovery layout with round cuisine collections and compact dishes.
+- **Violet Market**: premium violet-and-lime marketplace with a two-column food catalogue.
+- **Ruby Social**: premium red dining layout with an immersive cover and floating glass identity.
+- **Noir Reserve**: premium split-screen fine dining layout with champagne details and serif typography.
+- **Sunday Studio**: premium café magazine with expressive headings and alternating menu stories.
+
+The orange, violet and red experiences take visual inspiration from consumer food apps while using original names, artwork and restaurant content. They do not imply a connection with another platform or add delivery, ordering or payment services. Uploaded restaurant and dish photos are preserved; decorative original food illustrations appear only where no photo exists. Each manager preview and thumbnail renders the actual design.
 
 Managers can preview any layout without changing the live page, and request a locked design with **Request add-on**. The request appears in **Tickets & services**. Admins use **Enable theme add-on** or **Disable theme add-on** on the restaurant's theme card; enabling access allows the manager to choose **Use design**. No payment is automatically charged.
 
@@ -174,3 +178,5 @@ Restaurant printed cards are separate from guest theme add-ons. Open **QR & tabl
 ## GitHub verification
 
 `npm run check` and `npm test` cover syntax, permissions, account isolation, permanent handover, commissions, tickets, QR card generation and guest theme access. The **QR design verification** GitHub Actions workflow additionally renders and decodes all 48 printed QR combinations, tests downloads and print sizing, and exercises theme preview → request → admin enable → manager use → admin disable, mobile menu navigation and search. Screenshots are uploaded as the `qr-design-proof` artifact.
+
+Google review printed cards have a dedicated Google-colour identity, honest-review wording and a prominent **Powered by** company block. The existing administrator company setting is used; an unset or legacy placeholder company falls back to **YAM IT SERVICES**. Restaurant guest pages and table cards also display the YAM IT SERVICES provider branding. Google review cards retain the existing QR destinations, scan-safe quiet zones and the signature rounded matrix.
